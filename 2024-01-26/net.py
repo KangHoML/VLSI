@@ -8,7 +8,7 @@ def get_act_func(act_func):
         return nn.ReLU()
     elif act_func == "ELU":
         return nn.ELU()
-    elif act_func == "SILU":
+    elif act_func == "SiLU":
         return nn.SiLU()
     else:
         raise NotImplementedError(act_func)

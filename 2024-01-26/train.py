@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="./datasets/MNIST/")
 parser.add_argument("--act_func", type=str, default="ReLU",
                     choices=["Tanh", "ReLU", "ELU", "SiLU"])
-parser.add_argument("--learning_rate", type=int, default=1e-2,
+parser.add_argument("--learning_rate", type=float, default=1e-2,
                     choices=[1e-2, 1e-3, 1e-4])
 
 def plot_loss(train_losses, val_losses, act_func, lr):
@@ -71,7 +71,7 @@ def train(args):
 
             _, predicted = torch.max(outputs.data, 1)
             train_total += labels.size(0)
-            train_correct == (predicted == labels).sum().item()
+            train_correct += (predicted == labels).sum().item()
 
             train_loss += loss.item()
 
@@ -95,7 +95,7 @@ def train(args):
 
                 _, predicted = torch.max(outputs.data, 1)
                 val_total += labels.size(0)
-                val_correct == (predicted == labels).sum().item()
+                val_correct += (predicted == labels).sum().item()
 
                 val_loss += loss.item()
 

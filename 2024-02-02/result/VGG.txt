@@ -1,0 +1,122 @@
+Device : cuda
+Epoch [1/20]
+  Train Loss: 2.0599, Train Accuracy: 20.82%
+  Val Loss: 1.7203, Val Accuracy: 31.74%
+Epoch [2/20]
+  Train Loss: 1.7444, Train Accuracy: 33.45%
+  Val Loss: 1.5349, Val Accuracy: 42.68%
+Epoch [3/20]
+  Train Loss: 1.4971, Train Accuracy: 45.50%
+  Val Loss: 1.4999, Val Accuracy: 48.50%
+Epoch [4/20]
+  Train Loss: 1.3285, Train Accuracy: 53.53%
+  Val Loss: 1.0961, Val Accuracy: 61.05%
+Epoch [5/20]
+  Train Loss: 1.1813, Train Accuracy: 59.53%
+  Val Loss: 1.0576, Val Accuracy: 64.71%
+Epoch [6/20]
+  Train Loss: 1.0687, Train Accuracy: 63.76%
+  Val Loss: 1.1248, Val Accuracy: 67.39%
+Epoch [7/20]
+  Train Loss: 0.9906, Train Accuracy: 66.85%
+  Val Loss: 0.8007, Val Accuracy: 73.62%
+Epoch [8/20]
+  Train Loss: 0.9270, Train Accuracy: 68.99%
+  Val Loss: 0.8242, Val Accuracy: 72.53%
+Epoch [9/20]
+  Train Loss: 0.8900, Train Accuracy: 70.26%
+  Val Loss: 0.7595, Val Accuracy: 74.68%
+Epoch [10/20]
+  Train Loss: 0.8238, Train Accuracy: 72.42%
+  Val Loss: 0.6745, Val Accuracy: 77.58%
+Epoch [11/20]
+  Train Loss: 0.7792, Train Accuracy: 73.99%
+  Val Loss: 0.6355, Val Accuracy: 78.63%
+Epoch [12/20]
+  Train Loss: 0.7558, Train Accuracy: 75.36%
+  Val Loss: 0.6316, Val Accuracy: 78.95%
+Epoch [13/20]
+  Train Loss: 0.7125, Train Accuracy: 76.35%
+  Val Loss: 0.6315, Val Accuracy: 79.34%
+Epoch [14/20]
+  Train Loss: 0.6750, Train Accuracy: 77.48%
+  Val Loss: 0.5517, Val Accuracy: 81.53%
+Epoch [15/20]
+  Train Loss: 0.6548, Train Accuracy: 78.11%
+  Val Loss: 0.5653, Val Accuracy: 80.77%
+Epoch [16/20]
+  Train Loss: 0.6304, Train Accuracy: 78.91%
+  Val Loss: 0.5993, Val Accuracy: 80.16%
+Epoch [17/20]
+  Train Loss: 0.6047, Train Accuracy: 79.82%
+  Val Loss: 0.6082, Val Accuracy: 80.36%
+Epoch [18/20]
+  Train Loss: 0.5943, Train Accuracy: 80.31%
+  Val Loss: 0.5121, Val Accuracy: 82.54%
+Epoch [19/20]
+  Train Loss: 0.5802, Train Accuracy: 80.68%
+  Val Loss: 0.5140, Val Accuracy: 82.65%
+Epoch [20/20]
+  Train Loss: 0.5510, Train Accuracy: 81.54%
+  Val Loss: 0.4957, Val Accuracy: 83.36%
+Device : cuda
+Epoch [1/20]
+  Train Loss: 2.2008, Train Accuracy: 15.41%
+  Val Loss: 1.9665, Val Accuracy: 18.41%
+Epoch [2/20]
+  Train Loss: 1.9712, Train Accuracy: 19.72%
+  Val Loss: 1.8934, Val Accuracy: 22.17%
+Epoch [3/20]
+  Train Loss: 1.8903, Train Accuracy: 25.57%
+  Val Loss: 1.7522, Val Accuracy: 32.14%
+Epoch [4/20]
+  Train Loss: 1.6638, Train Accuracy: 36.31%
+  Val Loss: 1.4544, Val Accuracy: 45.33%
+Epoch [5/20]
+  Train Loss: 1.4710, Train Accuracy: 45.13%
+  Val Loss: 1.3076, Val Accuracy: 50.85%
+Epoch [6/20]
+  Train Loss: 1.3328, Train Accuracy: 51.55%
+  Val Loss: 1.2573, Val Accuracy: 53.71%
+Epoch [7/20]
+  Train Loss: 1.2217, Train Accuracy: 56.42%
+  Val Loss: 1.1544, Val Accuracy: 60.76%
+Epoch [8/20]
+  Train Loss: 1.1186, Train Accuracy: 61.24%
+  Val Loss: 0.9537, Val Accuracy: 67.51%
+Epoch [9/20]
+  Train Loss: 1.0579, Train Accuracy: 63.92%
+  Val Loss: 0.9165, Val Accuracy: 67.57%
+Epoch [10/20]
+  Train Loss: 0.9847, Train Accuracy: 66.71%
+  Val Loss: 0.8428, Val Accuracy: 72.41%
+Epoch [11/20]
+  Train Loss: 0.9466, Train Accuracy: 68.15%
+  Val Loss: 0.8941, Val Accuracy: 70.53%
+Epoch [12/20]
+  Train Loss: 0.8763, Train Accuracy: 70.67%
+  Val Loss: 0.7157, Val Accuracy: 76.71%
+Epoch [13/20]
+  Train Loss: 0.8203, Train Accuracy: 72.72%
+  Val Loss: 0.7595, Val Accuracy: 74.90%
+Epoch [14/20]
+  Train Loss: 0.7993, Train Accuracy: 73.71%
+  Val Loss: 0.8499, Val Accuracy: 72.99%
+Epoch [15/20]
+  Train Loss: 0.8871, Train Accuracy: 70.91%
+  Val Loss: 0.6823, Val Accuracy: 77.37%
+Epoch [16/20]
+  Train Loss: 0.7531, Train Accuracy: 75.12%
+  Val Loss: 0.6855, Val Accuracy: 77.48%
+Epoch [17/20]
+  Train Loss: 0.7179, Train Accuracy: 76.45%
+  Val Loss: 0.6387, Val Accuracy: 78.36%
+Epoch [18/20]
+  Train Loss: 0.6921, Train Accuracy: 77.18%
+  Val Loss: 0.6276, Val Accuracy: 80.06%
+Epoch [19/20]
+  Train Loss: 0.6695, Train Accuracy: 77.94%
+  Val Loss: 0.6317, Val Accuracy: 79.41%
+Epoch [20/20]
+  Train Loss: 0.6558, Train Accuracy: 78.72%
+  Val Loss: 0.5758, Val Accuracy: 81.32%

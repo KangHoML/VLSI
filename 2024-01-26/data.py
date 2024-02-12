@@ -42,7 +42,7 @@ class MNISTDataest(Dataset):
         return img, label
 
 if __name__ == "__main__":
-    data_path = "/mnt/c/workspace/AEED/datasets/MNIST/"
+    data_path = "../../workspace/datasets/MNIST/"
     example_dataset = MNISTDataest(data_path, train=False)
     img, target = example_dataset[10]
     print(f"img shape : {img.shape}")

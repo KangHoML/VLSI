@@ -1,4 +1,3 @@
-import sys
 import argparse
 import torch
 import matplotlib.pyplot as plt

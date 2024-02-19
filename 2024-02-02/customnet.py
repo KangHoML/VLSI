@@ -1,5 +1,7 @@
+import thop
 import torch
 import torch.nn as nn
+from torchsummary import summary
 
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride):
@@ -84,7 +86,11 @@ class CustomNet(nn.Module):
         return x
     
 if __name__ == "__main__":
-    net = CustomNet()
+    net = CustomNet(kernel_size=3)
     random_input = torch.randn(16, 3, 32, 32)
     random_output = net(random_input)
-    print(random_output.shape)
+    flops, params = thop.profile(net, inputs=(random_input, ))
+
+    print(f"Output Size: {random_output.shape}")
+    print(f"Computation (GFLOPs): {flops}, Params (Millions): {params}")
+    

@@ -24,9 +24,11 @@
 python3 train.py --data_path "../../datasets/CIFAR-10" \
                  --model "CustomNet" \
                  --kernel_size 3 \
+                 --epoch 40 \
                  > ./result/CustomNet.txt
 
 python3 train.py --data_path "../../datasets/CIFAR-10" \
                  --model "CustomNet" \
                  --kernel_size 5 \
+                 --epoch 40 \
                  >> ./result/CustomNet.txt

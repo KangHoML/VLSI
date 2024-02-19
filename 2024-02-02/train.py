@@ -11,24 +11,28 @@ from tqdm import tqdm
 from data import CIFAR10Dataset
 from vggnet import VGG
 from resnet import ResNet
+from customnet import CustomNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="./datasets/CIFAR-10")
 parser.add_argument("--model", type=str, default="VGG16")
 parser.add_argument("--bn_flag", type=bool, default=True)
+parser.add_argument("--kernel_size", type=int, default=3)
 parser.add_argument("--batch_size", type=int, default=64)
 parser.add_argument("--learning_rate", type=float, default=0.01)
 parser.add_argument("--epoch", type=int, default=20)
 
-def get_model(model, bn_flag):
+def get_model(model, bn_flag, kernel_size):
     if "VGG" in model:
         return VGG(cfg=model, bn=bn_flag)
     elif "ResNet" in model:
         return ResNet(cfg=model)
+    elif "CustomNet" in model:
+        return CustomNet(kernel_size)
     else:
         raise NotImplementedError(model)
 
-def plot_loss(train_losses, val_losses, model, bn_flag):
+def plot_loss(train_losses, val_losses, model, bn_flag, kernel_size):
     plt.figure(figsize=(10, 5))
     plt.plot(range(1, len(train_losses)+1), train_losses, label ='Train_Loss', marker ='o')
     plt.plot(range(1, len(val_losses)+1), val_losses, label ='Validation_Loss', marker ='o')
@@ -37,13 +41,18 @@ def plot_loss(train_losses, val_losses, model, bn_flag):
 
     if "VGG" in model:
         title = f"{model} Architecture with bn_flag={bn_flag}"
-    else:
+    elif "ResNet" in model:
         title = f"{model} Architecture"
+    else:
+        title = f"{model} Architecture with kernel_size = {kernel_size}"
     plt.title(title)
     plt.legend()
     plt.grid()
-
-    plt.savefig(f'./result/{model}.png')
+    
+    if "CustomNet" in model:
+        plt.savefig(f'./result/{model}_{kernel_size}.png')
+    else:
+        plt.savefig(f'./result/{model}.png')
 
 def train(args):
     os.makedirs("result", exist_ok=True)
@@ -56,7 +65,7 @@ def train(args):
     train_loader, val_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4), \
                                DataLoader(val_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
     
-    net = get_model(args.model, args.bn_flag).to(device)
+    net = get_model(args.model, args.bn_flag, args.kernel_size).to(device)
     criterion = CrossEntropyLoss()
     optimizer = SGD(net.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=0.0001)
 
@@ -119,7 +128,7 @@ def train(args):
         print(f"  Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy:.2f}%")
         print(f"  Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%")
     
-    plot_loss(train_losses, val_losses, model=args.model, bn_flag=args.bn_flag)
+    plot_loss(train_losses, val_losses, model=args.model, bn_flag=args.bn_flag, kernel_size=args.kernel_size)
 
 if __name__ == "__main__":
     args = parser.parse_args()

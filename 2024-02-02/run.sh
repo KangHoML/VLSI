@@ -1,21 +1,32 @@
-# effects of depth in VGG 
+# # effects of depth in VGG 
+# python3 train.py --data_path "../../datasets/CIFAR-10" \
+#                  --model "VGG16" \
+#                  > ./result/VGG.txt
+
+# python3 train.py --data_path "../../datasets/CIFAR-10" \
+#                  --model "VGG19" \
+#                  >> ./result/VGG.txt
+
+# # effects of depth in ResNet
+# python3 train.py --data_path "../../datasets/CIFAR-10" \
+#                  --model "ResNet18" \
+#                  > ./result/ResNet.txt
+
+# python3 train.py --data_path "../../datasets/CIFAR-10" \
+#                  --model "ResNet34" \
+#                  >> ./result/ResNet.txt
+
+# python3 train.py --data_path "../../datasets/CIFAR-10" \
+#                  --model "ResNet50" \
+#                  >> ./result/ResNet.txt
+
+# effects of kernel_size in CustomNet
 python3 train.py --data_path "../../datasets/CIFAR-10" \
-                 --model "VGG16" \
-                 > ./result/VGG.txt
+                 --model "CustomNet" \
+                 --kernel_size 3 \
+                 > ./result/CustomNet.txt
 
 python3 train.py --data_path "../../datasets/CIFAR-10" \
-                 --model "VGG19" \
-                 >> ./result/VGG.txt
-
-# effects of depth in ResNet
-python3 train.py --data_path "../../datasets/CIFAR-10" \
-                 --model "ResNet18" \
-                 > ./result/ResNet.txt
-
-python3 train.py --data_path "../../datasets/CIFAR-10" \
-                 --model "ResNet34" \
-                 >> ./result/ResNet.txt
-
-python3 train.py --data_path "../../datasets/CIFAR-10" \
-                 --model "ResNet50" \
-                 >> ./result/ResNet.txt
+                 --model "CustomNet" \
+                 --kernel_size 5 \
+                 >> ./result/CustomNet.txt

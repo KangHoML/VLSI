@@ -1,0 +1,95 @@
+Results wo. Knowledge Distillation
+Teacher Network
+Epoch [1/10]
+  Train Loss: 1.3902, Train Accuracy: 50.06%
+Epoch [2/10]
+  Train Loss: 0.9518, Train Accuracy: 66.68%
+Epoch [3/10]
+  Train Loss: 0.7460, Train Accuracy: 73.93%
+Epoch [4/10]
+  Train Loss: 0.6012, Train Accuracy: 79.07%
+Epoch [5/10]
+  Train Loss: 0.4789, Train Accuracy: 83.19%
+Epoch [6/10]
+  Train Loss: 0.3598, Train Accuracy: 87.31%
+Epoch [7/10]
+  Train Loss: 0.2729, Train Accuracy: 90.39%
+Epoch [8/10]
+  Train Loss: 0.2014, Train Accuracy: 92.93%
+Epoch [9/10]
+  Train Loss: 0.1735, Train Accuracy: 93.90%
+Epoch [10/10]
+  Train Loss: 0.1364, Train Accuracy: 95.26%
+  Val Loss: 1.3586, Val Accuracy: 72.79%
+
+Student Network
+Epoch [1/10]
+  Train Loss: 1.5099, Train Accuracy: 45.76%
+Epoch [2/10]
+  Train Loss: 1.1915, Train Accuracy: 57.86%
+Epoch [3/10]
+  Train Loss: 1.0509, Train Accuracy: 62.99%
+Epoch [4/10]
+  Train Loss: 0.9562, Train Accuracy: 66.38%
+Epoch [5/10]
+  Train Loss: 0.8753, Train Accuracy: 69.34%
+Epoch [6/10]
+  Train Loss: 0.8113, Train Accuracy: 71.40%
+Epoch [7/10]
+  Train Loss: 0.7500, Train Accuracy: 73.48%
+Epoch [8/10]
+  Train Loss: 0.6930, Train Accuracy: 75.59%
+Epoch [9/10]
+  Train Loss: 0.6450, Train Accuracy: 77.18%
+Epoch [10/10]
+  Train Loss: 0.5990, Train Accuracy: 78.93%
+  Val Loss: 0.9130, Val Accuracy: 69.48%
+Norm of 1st layer of Student Network: 3.3067638874053955
+
+Results wt. Knowledge Distillation
+Teacher Network
+Epoch [1/10]
+  Train Loss: 1.3936, Train Accuracy: 49.79%
+Epoch [2/10]
+  Train Loss: 0.9622, Train Accuracy: 66.14%
+Epoch [3/10]
+  Train Loss: 0.7654, Train Accuracy: 73.10%
+Epoch [4/10]
+  Train Loss: 0.6243, Train Accuracy: 78.10%
+Epoch [5/10]
+  Train Loss: 0.4926, Train Accuracy: 82.66%
+Epoch [6/10]
+  Train Loss: 0.3781, Train Accuracy: 86.65%
+Epoch [7/10]
+  Train Loss: 0.2799, Train Accuracy: 90.17%
+Epoch [8/10]
+  Train Loss: 0.2163, Train Accuracy: 92.37%
+Epoch [9/10]
+  Train Loss: 0.1724, Train Accuracy: 93.95%
+Epoch [10/10]
+  Train Loss: 0.1466, Train Accuracy: 94.82%
+  Val Loss: 1.3111, Val Accuracy: 72.19%
+
+Student Network
+Epoch [1/10]
+  Train Loss: 2.7720, Train Accuracy: 45.35%
+Epoch [2/10]
+  Train Loss: 2.2537, Train Accuracy: 56.88%
+Epoch [3/10]
+  Train Loss: 2.0212, Train Accuracy: 62.08%
+Epoch [4/10]
+  Train Loss: 1.8654, Train Accuracy: 65.64%
+Epoch [5/10]
+  Train Loss: 1.7334, Train Accuracy: 68.40%
+Epoch [6/10]
+  Train Loss: 1.6343, Train Accuracy: 70.74%
+Epoch [7/10]
+  Train Loss: 1.5406, Train Accuracy: 72.86%
+Epoch [8/10]
+  Train Loss: 1.4543, Train Accuracy: 74.71%
+Epoch [9/10]
+  Train Loss: 1.3848, Train Accuracy: 76.36%
+Epoch [10/10]
+  Train Loss: 1.3136, Train Accuracy: 78.01%
+  Val Loss: 1.0080, Val Accuracy: 69.02%
+Norm of 1st layer of Student Network: 3.400723457336426

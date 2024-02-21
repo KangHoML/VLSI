@@ -39,6 +39,7 @@ class TeacherNet(nn.Module):
 
         x = self.classifier(x)
         hidden_representation = avg_pool1d(flattened_output, 2) # be used when match the representation
+                                                                # avg_pool : match the dimension with student
         return x, hidden_representation, feature_map
     
 '''
@@ -59,7 +60,7 @@ class StudentNet(nn.Module):
         )
 
         self.regressor = nn.Sequential(
-            nn.Conv2d(16, 32, kernel_size=3, padding=1)
+            nn.Conv2d(16, 32, kernel_size=3, padding=1) # match the dimension with teacher
         )
 
         self.classifier = nn.Sequential(
@@ -82,16 +83,18 @@ if __name__ == "__main__":
     teacher_net, student_net = TeacherNet(), StudentNet()
     random_input = torch.randn(16, 3, 32, 32)
     
-    teacher_output, _, _ = teacher_net(random_input)
-    student_output, _, _ = student_net(random_input)
+    teacher_output, teacher_representation, teacher_feature_map = teacher_net(random_input)
+    student_output, student_representation, student_feature_map = student_net(random_input)
     t_flops, t_params = thop.profile(teacher_net, inputs=(random_input, ))
     s_flops, s_params = thop.profile(student_net, inputs=(random_input, ))
     
     print('Teacher Network')
     print(f'    Output Shape: {teacher_output.shape}')
+    print(f'    Representation Shape: {teacher_representation.shape}, Feature Map Shape: {teacher_feature_map.shape}')
     print(f'    Computation (GFLOPs): {t_flops}, Params (Millions): {t_params}')
     print('Student Network')
     print(f'    Output Shape: {student_output.shape}')
+    print(f'    Representation Shape: {student_representation.shape}, Feature Map Shape: {student_feature_map.shape}')
     print(f'    Computation (GFLOPs): {s_flops}, Params (Millions): {s_params}')
     
 

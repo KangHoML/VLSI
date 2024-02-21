@@ -29,7 +29,11 @@ def baseline(args):
 
     # Train & Test teacher network
     print('Teacher Network')
-    train(args, teacher_net, train_loader)
+    weights = "./result/teacher_net.pth"
+    if os.path.exists(weights):
+        teacher_net.load_state_dict(torch.load(weights))
+    else:
+        train(args, teacher_net, train_loader)
     test(teacher_net, val_loader)
     
     # Train & Test student network

@@ -29,7 +29,6 @@ def knowledge_distillation(args):
     print('\nResults wt. Knowledge Distillation')
 
     # Train & Test teacher network
-    print('Teacher Network')
     weights = "./result/teacher_net.pth"
     if os.path.exists(weights):
         teacher_net.load_state_dict(torch.load(weights))

@@ -124,7 +124,7 @@ def train_kd(args, teacher_net, student_net, train_loader):
         for inputs, labels in tqdm(train_loader):
             inputs = inputs.to(device)
             labels = labels.to(device)
-            targets = torch.ones(inputs.size(0)).to(device) # used in cosine_loss
+            target = torch.ones(inputs.size(0)).to(device) # used in cosine_loss
             optimizer.zero_grad()
 
             # do not change the teacher's weights (don't need to train)

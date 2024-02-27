@@ -16,7 +16,7 @@ Multi-Head Attention Block
 
 '''
 class MultiHeadAttention(nn.Module):
-    def __init__(self, hidden_size, prob_drop, num_heads=8):
+    def __init__(self, hidden_size, prob_drop, num_heads):
         super().__init__()
         self.num_heads = num_heads
         self.attention_size = attention_size = hidden_size // num_heads
@@ -101,11 +101,18 @@ class FeedForward(nn.Module):
 
         return x
 
+'''
+Block of Encoder
+    Input
+        - embedded vector words (wt. positional encoding) or before encoder layer's output : (batch_size, length, hidden_size)
+    Output
+        - encoded vector : (batch_size, length, hidden_size)
+'''
 class EncoderLayer(nn.Module):
-    def __init__(self, hidden_size, filter_size, prob_drop):
+    def __init__(self, hidden_size, filter_size, prob_drop, num_heads):
         super().__init__()
 
-        self.self_attention = MultiHeadAttention(hidden_size, prob_drop)
+        self.self_attention = MultiHeadAttention(hidden_size, prob_drop, num_heads)
         self.ffnn = FeedForward(hidden_size, filter_size, prob_drop)
 
         self.layer_norm = nn.LayerNorm(hidden_size, eps=1e-6)
@@ -124,11 +131,14 @@ class EncoderLayer(nn.Module):
 
         return x
 
+'''
+Stack of EncoderLayer
+'''
 class Encoder(nn.Module):
-    def __init__(self, hidden_size, filter_size, prob_drop, num_layer):
+    def __init__(self, hidden_size, filter_size, prob_drop, num_layer, num_heads):
         super().__init__()
 
-        encoders = [EncoderLayer(hidden_size, filter_size, prob_drop)
+        encoders = [EncoderLayer(hidden_size, filter_size, prob_drop, num_heads)
                     for _ in range(num_layer)]
         self.layers = nn.ModuleList(encoders)
 
@@ -142,7 +152,7 @@ class Encoder(nn.Module):
 if __name__ == "__main__":
     # (batch_size, length, hidden_size)
     input_tensor = torch.randn(64, 50, 512)
-    encoder = Encoder(hidden_size=512, filter_size=2048, prob_drop=0.1, num_layer=6)
+    encoder = Encoder(hidden_size=512, filter_size=2048, prob_drop=0.1, num_layer=6, num_heads=8)
 
     context = encoder(input_tensor, mask=None)
     print(f"Context shape: {context.shape}")

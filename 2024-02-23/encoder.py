@@ -1,4 +1,3 @@
-import math
 import torch
 import torch.nn as nn
 
@@ -41,14 +40,14 @@ class MultiHeadAttention(nn.Module):
     # output shape = (batch_size, num_heads, length, attention_size)
     def split_heads(self, inputs, batch_size):
         inputs = inputs.reshape(batch_size, -1, self.num_heads, self.attention_size)
-        return torch.transpose(inputs, (1, 2))
+        return inputs.transpose(1, 2)
     
     # calculate attention value
     # attention = softmax((QK^T) / sqrt(attention_size))V
     # output shape = (batch_size, num_heads, length, attention_size)
     def scaled_dot_product_attention(self, q, k, v, mask):
-        attention_score = torch.matmul(q, torch.transpose(k, (2, 3)))
-        attention_score /= torch.sqrt(self.attention_size, dtype=torch.float32)
+        attention_score = torch.matmul(q, k.transpose(2, 3))
+        attention_score /= (self.attention_size ** -0.5)
         
         # masking: outputs of softmax are 0
         if mask is not None:
@@ -102,18 +101,18 @@ class FeedForward(nn.Module):
 
         return x
 
-class EncoderLayer(nn.Moudle):
+class EncoderLayer(nn.Module):
     def __init__(self, hidden_size, filter_size, prob_drop):
         super().__init__()
 
-        self.self_attention = MultiHeadAttention(hidden_size, filter_size, prob_drop)
+        self.self_attention = MultiHeadAttention(hidden_size, prob_drop)
         self.ffnn = FeedForward(hidden_size, filter_size, prob_drop)
 
         self.layer_norm = nn.LayerNorm(hidden_size, eps=1e-6)
         self.dropout = nn.Dropout(prob_drop)
 
     def forward(self, x, mask):
-        self_attention = self.attention(x, x, x, mask)
+        self_attention = self.self_attention(x, x, x, mask)
         self_attention = self.dropout(self_attention)
         x = x + self_attention
         x = self.layer_norm(x)
@@ -125,9 +124,25 @@ class EncoderLayer(nn.Moudle):
 
         return x
 
-
 class Encoder(nn.Module):
-    def __init__(self):
+    def __init__(self, hidden_size, filter_size, prob_drop, num_layer):
         super().__init__()
 
-    raise NotImplemented
+        encoders = [EncoderLayer(hidden_size, filter_size, prob_drop)
+                    for _ in range(num_layer)]
+        self.layers = nn.ModuleList(encoders)
+
+    def forward(self, input, mask):
+        context = input
+        for layer in self.layers:
+            context = layer(context, mask)
+
+        return context
+
+if __name__ == "__main__":
+    # (batch_size, length, hidden_size)
+    input_tensor = torch.randn(64, 50, 512)
+    encoder = Encoder(hidden_size=512, filter_size=2048, prob_drop=0.1, num_layer=6)
+
+    context = encoder(input_tensor, mask=None)
+    print(f"Context shape: {context.shape}")

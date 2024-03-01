@@ -1,0 +1,16 @@
+Device : cuda
+Epoch [1/20]
+  Train Loss: 7.3762, Train Accuracy: 24.24%
+  Val Loss: 4.5079, Val Accuracy: 34.14%
+Epoch [2/20]
+  Train Loss: 4.3243, Train Accuracy: 36.35%
+  Val Loss: 4.3266, Val Accuracy: 37.45%
+Epoch [3/20]
+  Train Loss: 4.1949, Train Accuracy: 38.33%
+  Val Loss: 4.4022, Val Accuracy: 39.70%
+Epoch [4/20]
+  Train Loss: 4.2005, Train Accuracy: 39.01%
+  Val Loss: 4.5875, Val Accuracy: 39.60%
+Epoch [5/20]
+  Train Loss: 4.2613, Train Accuracy: 38.73%
+  Val Loss: 4.7346, Val Accuracy: 40.15%

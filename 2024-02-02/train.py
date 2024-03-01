@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from torch.utils.data import DataLoader
 from torch.nn import CrossEntropyLoss
-from torch.optim import SGD
+from torch.optim import Adam
 from tqdm import tqdm
 
 from data import CIFAR10Dataset
@@ -18,7 +18,7 @@ parser.add_argument("--data_path", type=str, default="./datasets/CIFAR-10")
 parser.add_argument("--model", type=str, default="VGG16")
 parser.add_argument("--bn_flag", type=bool, default=True)
 parser.add_argument("--kernel_size", type=int, default=3)
-parser.add_argument("--batch_size", type=int, default=64)
+parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--learning_rate", type=float, default=0.01)
 parser.add_argument("--epoch", type=int, default=20)
 
@@ -67,7 +67,7 @@ def train(args):
     
     net = get_model(args.model, args.bn_flag, args.kernel_size).to(device)
     criterion = CrossEntropyLoss()
-    optimizer = SGD(net.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=0.0001)
+    optimizer = Adam(net.parameters(), lr=args.learning_rate)
 
     train_losses = []
     val_losses = []

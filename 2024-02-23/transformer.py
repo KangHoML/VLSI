@@ -24,7 +24,7 @@ class MultiHeadAttention(nn.Module):
         attn_score = torch.matmul(query, key_T) / math.sqrt(d_k)
         
         if mask is not None:
-            attn_score = attn_score.masked_fill(mask.unsqueeze(1).unsqueeze(-1), 0)
+            attn_score = attn_score.masked_fill(mask==0, float("-1e20"))
 
         attn_weight = F.softmax(attn_score, -1)
         attn_value = torch.matmul(attn_weight, value)
@@ -58,6 +58,20 @@ class FeedForword(nn.Module):
 
         return x
 
+def positional_encoding(hidden_size, max_seq_len, device):
+        position = torch.arange(0, max_seq_len, dtype=torch.float).unsqueeze(1)
+        pe = torch.zeros(max_seq_len, hidden_size)
+        pe.requires_grad = False
+        div_term = torch.pow(torch.ones(hidden_size//2).fill_(10000),
+                             torch.arange(0, hidden_size, 2) / torch.tensor(hidden_size, dtype=torch.float32))
+        
+        pe[:, 0::2] = torch.sin(position / div_term)
+        pe[:, 1::2] = torch.cos(position / div_term)
+
+        pe.unsqueeze(0)
+
+        return pe.to(device)
+
 class EncoderLayer(nn.Module):
     def __init__(self, hidden_size):
         super().__init__()
@@ -76,12 +90,19 @@ class EncoderLayer(nn.Module):
         return output
 
 class Encoder(nn.Module):
-    def __init__(self, hidden_size, num_layers):
+    def __init__(self, hidden_size, num_layers, src_vocab_size, max_seq_len, device):
         super().__init__()
-        self.encoder = [EncoderLayer(hidden_size) for _ in range(num_layers)]
+        self.src_embed = nn.Embedding(src_vocab_size, hidden_size)
+        self.positional_encoding = positional_encoding(hidden_size, max_seq_len, device)
+        self.encoder = nn.ModuleList([EncoderLayer(hidden_size) for _ in range(num_layers)])
+
+        self.max_seq_len = max_seq_len
+        self.device = device
 
     def forward(self, src, mask):
-        encoder_output = src
+        src_embed = self.src_embed(src)
+        src_embed += self.positional_encoding
+        encoder_output = src_embed
         for encoder in self.encoder:
             encoder_output = encoder(encoder_output, mask)
         
@@ -95,11 +116,11 @@ class DecoderLayer(nn.Module):
         self.norm = nn.LayerNorm(hidden_size)
         self.ffnn = FeedForword(hidden_size)
     
-    def forward(self, trg, encoder_output, mask):
-        look_ahead_attn = self.attention(trg, trg, trg, mask)
+    def forward(self, trg, encoder_output, pad_mask, look_ahead_mask):
+        look_ahead_attn = self.attention(trg, trg, trg, look_ahead_mask)
         res_out = trg + self.norm(look_ahead_attn)
         
-        attn = self.attention(encoder_output, encoder_output, res_out)
+        attn = self.attention(encoder_output, encoder_output, res_out, pad_mask)
         res_out = res_out + self.norm(attn)
 
         ffnn_out = self.ffnn(res_out)
@@ -108,88 +129,82 @@ class DecoderLayer(nn.Module):
         return output
     
 class Decoder(nn.Module):
-    def __init__(self, hidden_size, num_layers):
+    def __init__(self, hidden_size, num_layers, trg_vocab_size, max_seq_len, device):
         super().__init__()
-        self.decoder = [DecoderLayer(hidden_size) for _ in range(num_layers)]
+        self.decoder = nn.ModuleList([DecoderLayer(hidden_size) for _ in range(num_layers)])
+        self.positional_encoding = positional_encoding(hidden_size, max_seq_len, device)
+        self.trg_embed = nn.Embedding(trg_vocab_size, hidden_size)
 
-    def forward(self, trg, encoder_output, mask):
-        decoder_output = trg
+        self.max_seq__len = max_seq_len
+        self.device = device
+
+    def forward(self, trg, encoder_output, pad_mask, look_ahead_mask):
+        trg_embed = self.trg_embed(trg)
+        trg_embed += self.positional_encoding
+        decoder_output = trg_embed
         for decoder in self.decoder:
-            decoder_output = decoder(decoder_output, encoder_output, mask)
+            decoder_output = decoder(decoder_output, encoder_output, pad_mask, look_ahead_mask)
 
         return decoder_output
     
 class Transformer(nn.Module):
     def __init__(self, hidden_size, num_layers, src_vocab_size, trg_vocab_size,
-                 src_max_seq_len, trg_max_seq_len):
+                 src_pad_idx, trg_pad_idx, max_seq_len, device):
         super().__init__()
 
         self.hidden_size = hidden_size
-        self.attn_size = hidden_size // 2
-        self.src_vocab_size = src_vocab_size
-        self.trg_vocab_size = trg_vocab_size
-        self.src_max_seq_len = src_max_seq_len
-        self.trg_max_seq_len = trg_max_seq_len
+        self.src_pad_idx = src_pad_idx
+        self.trg_pad_idx = trg_pad_idx
+        self.max_seq_len = max_seq_len
+        self.device = device
 
-        self.src_embed = nn.Embedding(src_vocab_size, hidden_size)
-        self.encoder = Encoder(hidden_size, num_layers)
-
-        self.trg_embed = nn.Embedding(trg_vocab_size, hidden_size)
-        self.decoder= Decoder(hidden_size, num_layers)
-
-        self.output = nn.Sequential(
-            nn.Linear(hidden_size, trg_max_seq_len),
-            nn.Softmax(dim=-1)
-        )
-
-    def positional_encoding(self, max_seq_len):
-        position = torch.arange(0, max_seq_len, dtype=torch.float).unsqueeze(1)
-        pe = torch.zeros(max_seq_len, self.hidden_size)
-        div_term = torch.pow(torch.ones(self.attn_size).fill_(10000),
-                             torch.arange(0, self.hidden_size, 2) / torch.tensor(self.hidden_size, dtype=torch.float32))
+        self.encoder = Encoder(hidden_size, num_layers, src_vocab_size, max_seq_len, device)
+        self.decoder= Decoder(hidden_size, num_layers, trg_vocab_size, max_seq_len, device)
         
-        pe[:, 0::2] = torch.sin(position / div_term)
-        pe[:, 1::2] = torch.cos(position / div_term)
+        self.output = nn.Sequential(
+            nn.Linear(hidden_size, max_seq_len),
+            nn.LogSoftmax(dim=-1)
+        )
+    
+    def create_pad_mask(self, query, key):
+        len_query, len_key = query.size(1), key.size(1)
 
-        pe.unsqueeze(0)
-        self.register_buffer('pe', pe)
+        key = key.ne(self.src_pad_idx).unsqueeze(1).unsqueeze(2)
+        key = key.repeat(1, 1, len_query, 1)
 
-        return pe
+        query = query.ne(self.src_pad_idx).unsqueeze(1).unsqueeze(3)
+        query = query.repeat(1, 1, 1, len_key)
 
-    def forward(self, src, trg, trg_mask, src_mask=None):
-        src_embed = self.src_embed(src)
-        src_embed += self.positional_encoding(self.src_max_seq_len)
-        encoder_output =self.encoder(src_embed, src_mask)
+        mask = key & query
+        return mask
+    
+    def create_look_ahead_mask(self, trg):
+        n, trg_len = trg.shape
+        trg_mask = torch.tril(torch.ones((trg_len, trg_len))).expand(n, 1, trg_len, trg_len)
+        return trg_mask.to(self.device)
 
-        trg_embed = self.trg_embed(trg)
-        trg_embed += self.positional_encoding(self.trg_max_seq_len)
-        decoder_output = self.decoder(trg_embed, encoder_output, trg_mask)
+    def forward(self, src, trg):
+        src_mask = self.create_pad_mask(src, src)
+        encoder_output =self.encoder(src, src_mask)
+
+        trg_pad_mask = self.create_pad_mask(trg, src)
+        trg_look_ahead_mask = self.create_look_ahead_mask(trg)
+
+        decoder_output = self.decoder(trg, encoder_output, trg_pad_mask, trg_look_ahead_mask)
 
         output = self.output(decoder_output)
 
         return output
 
 if __name__ == "__main__":
+    device = torch.device("cuda")
     src_vocab_size, trg_vocab_size = 4488, 7884
-    max_seq_len = 16
-    
-    net = Transformer(512, 6, src_vocab_size, trg_vocab_size, max_seq_len, max_seq_len)
-    
-    src = torch.randint(low=0, high=src_vocab_size, size=(16, max_seq_len), dtype=torch.long)
-    trg = torch.randint(low=0, high=trg_vocab_size, size=(16, max_seq_len), dtype=torch.long)
-    
-    mask = torch.zeros((16, max_seq_len)).to(torch.bool)
-    mask[:, :30] = 1
 
-    output = net(src, trg, trg_mask=mask)
+    net = Transformer(512, 6, src_vocab_size, trg_vocab_size,
+                      src_pad_idx=1, trg_pad_idx=1, max_seq_len=16, device=device).to(device)
+    
+    src = torch.randint(low=0, high=src_vocab_size, size=(16, 16), dtype=torch.long).to(device)
+    trg = torch.randint(low=0, high=trg_vocab_size, size=(16, 16), dtype=torch.long).to(device)
+
+    output = net(src, trg)
     print(output.shape)
-
-
-
-
-
-
-
-
-
-

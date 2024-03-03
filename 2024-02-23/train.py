@@ -10,41 +10,24 @@ from tqdm import tqdm
 
 from data import TextDataset, split_dataset
 from lstm import Seq2Seq
-from transformer import Transformer
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="../../datasets/fra_eng.txt")
-parser.add_argument("--model", type=str, default="Seq2Seq", choices=["Seq2Seq", "Transformer"])
 parser.add_argument("--num_sample", type=int, default=33000)
 parser.add_argument("--embed_size", type=int, default=256)
 parser.add_argument("--hidden_size", type=int, default=256)
-parser.add_argument("--num_layers", type=int, default=6)
-parser.add_argument("--max_seq_len", type=int, default=16)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--learning_rate", type=float, default=0.001)
 parser.add_argument("--epoch", type=int, default=20)
 
-def get_model(args, src_vocab_size, trg_vocab_size,device):
-    if args.model == "Seq2Seq":
-        return Seq2Seq(src_vocab_size, trg_vocab_size, args.embed_size, args.hidden_size).to(device)
-    elif args.model == "Transformer":
-        return Transformer(args.hidden_size, args.num_layers, src_vocab_size, trg_vocab_size,
-                           src_pad_idx=0, trg_pad_idx=0, max_seq_len=args.max_seq_len, device=device).to(device)
-    else:
-        raise NotImplementedError(args.model) 
-
-
-def plot_loss(model, train_losses, val_losses):
+def plot_loss(train_losses, val_losses):
     plt.figure(figsize=(10, 5))
     plt.plot(range(1, len(train_losses)+1), train_losses, label ='Train_Loss', marker ='o')
     plt.plot(range(1, len(val_losses)+1), val_losses, label ='Validation_Loss', marker ='o')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
 
-    if model == "Seq2Seq":
-        title = "LSTM with Attention"
-    elif model == "Transformer":
-        title = "Transformer"
+    title = "LSTM with Attention"
     plt.title(title)
     plt.legend()
     plt.grid()
@@ -62,7 +45,7 @@ def train(args):
                                DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
     
     src_vocab_size, trg_vocab_size = len(text_dataset.src_vocab), len(text_dataset.trg_vocab)
-    net = get_model(args, src_vocab_size, trg_vocab_size, device)
+    net = Seq2Seq(src_vocab_size, trg_vocab_size, args.embed_size, args.hidden_size).to(device)
     criterion = CrossEntropyLoss(ignore_index=0)
     optimizer = Adam(net.parameters(), lr=args.learning_rate)
 
@@ -127,16 +110,13 @@ def train(args):
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            if args.model == "Seq2Seq":
-                torch.save(net.state_dict(), './result/seq2seq.pth')
-            elif args.model == "Transformer":
-                torch.save(net.state_dict(), './result/transformer.pth')
+            torch.save(net.state_dict(), './result/seq2seq.pth')
 
         print(f"Epoch [{epoch+1}/{args.epoch}]")
         print(f"  Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy:.2f}%")
         print(f"  Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%")
         
-    plot_loss(args.model, train_losses, val_losses)
+    plot_loss(train_losses, val_losses)
 
 if __name__ == "__main__":
     args = parser.parse_args()

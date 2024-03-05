@@ -162,7 +162,7 @@ class Transformer(nn.Module):
         self.decoder= Decoder(hidden_size, num_layers, trg_vocab_size, max_seq_len, device)
         
         self.output = nn.Sequential(
-            nn.Linear(hidden_size, max_seq_len),
+            nn.Linear(hidden_size, trg_vocab_size),
             nn.LogSoftmax(dim=-1)
         )
     

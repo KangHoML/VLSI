@@ -2,14 +2,14 @@ import torch
 import torch.nn as nn
 
 class EncoderLSTM(nn.Module):
-    def __init__(self, src_vocab_size, embed_size, hidden_size, prob_drop):
+    def __init__(self, src_vocab_size, hidden_size, prob_drop):
         super().__init__()
 
         self.embedding = nn.Sequential(
-            nn.Embedding(src_vocab_size, embed_size, padding_idx=0),
+            nn.Embedding(src_vocab_size, hidden_size, padding_idx=0),
             nn.Dropout(prob_drop)
         )
-        self.lstm = nn.LSTM(embed_size, hidden_size, batch_first=True)
+        self.lstm = nn.LSTM(hidden_size, hidden_size, batch_first=True)
 
     def forward(self, x):
         x = self.embedding(x)
@@ -18,15 +18,15 @@ class EncoderLSTM(nn.Module):
         return output, hidden, cell
     
 class DecoderLSTM(nn.Module):
-    def __init__(self, trg_vocab_size, embed_size, hidden_size, prob_drop):
+    def __init__(self, trg_vocab_size, hidden_size, prob_drop):
         super().__init__()
 
         self.embedding = nn.Sequential(
-            nn.Embedding(trg_vocab_size, embed_size, padding_idx=0),
+            nn.Embedding(trg_vocab_size, hidden_size, padding_idx=0),
             nn.Dropout(prob_drop)
         )
         self.softmax = nn.Softmax(dim=2)
-        self.lstm = nn.LSTM(embed_size + hidden_size, hidden_size, batch_first=True)
+        self.lstm = nn.LSTM(hidden_size + hidden_size, hidden_size, batch_first=True)
         self.fc = nn.Linear(hidden_size, trg_vocab_size)
         
     def attention(self, encoder_output, hidden):
@@ -53,10 +53,10 @@ class DecoderLSTM(nn.Module):
         return output, hidden, cell
     
 class Seq2Seq(nn.Module):
-    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, prob_drop=0.1):
+    def __init__(self, src_vocab_size, trg_vocab_size, hidden_size, prob_drop=0.1):
         super().__init__()
-        self.encoder = EncoderLSTM(src_vocab_size, embed_size, hidden_size, prob_drop)
-        self.decoder = DecoderLSTM(trg_vocab_size, embed_size, hidden_size, prob_drop)
+        self.encoder = EncoderLSTM(src_vocab_size, hidden_size, prob_drop)
+        self.decoder = DecoderLSTM(trg_vocab_size, hidden_size, prob_drop)
 
     def forward(self, src, trg):
         encoder_output, hidden, cell = self.encoder(src)
@@ -67,7 +67,7 @@ class Seq2Seq(nn.Module):
 if __name__ == "__main__":
     src_vocab_size, trg_vocab_size = 4488, 7884
 
-    net = Seq2Seq(src_vocab_size, trg_vocab_size, embed_size=256, hidden_size=256)
+    net = Seq2Seq(src_vocab_size, trg_vocab_size, hidden_size=256)
     src = torch.randint(low=0, high=src_vocab_size, size=(16, 7), dtype=torch.long)
     trg = torch.randint(low=0, high=trg_vocab_size, size=(16, 16), dtype=torch.long)
 

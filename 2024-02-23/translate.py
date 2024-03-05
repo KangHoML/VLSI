@@ -20,14 +20,13 @@ def seq_to_trg(dataset, input_seq):
             encoded_word != dataset.trg_vocab['<eos>']):
             sent = sent + dataset.index_to_trg[encoded_word] + ' '
     return sent
-
+    
 def decode_seq(dataset, net, input_seq, max_seq_len, device):
     encoder_input = torch.tensor(input_seq, dtype=torch.long).unsqueeze(0).to(device)
-    decoder_input = torch.tensor([dataset.trg_vocab['<sos>']], dtype=torch.long).to(device)
+    decoder_input = torch.tensor([dataset.trg_vocab['<sos>']], dtype=torch.long).unsqueeze(0).to(device)
     
     decoded_token = []
     for _ in range(max_seq_len):
-        
         with torch.no_grad():
             output = net(encoder_input, decoder_input)
             next_token = output[:, -1, :].argmax(dim=-1).item()
@@ -36,8 +35,7 @@ def decode_seq(dataset, net, input_seq, max_seq_len, device):
             break
 
         decoded_token.append(next_token)
-        decoder_input = torch.cat((decoder_input, torch.tensor([[next_token]],
-                                                                dtype=torch.long).to(device)), dim=-1)
+        decoder_input = torch.cat([decoder_input, torch.tensor([[next_token]], dtype=torch.long).to(device)], dim=1)
 
     decoded_seq = ' '.join(dataset.index_to_trg[token] for token in decoded_token)
     return decoded_seq

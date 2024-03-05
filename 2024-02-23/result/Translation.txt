@@ -1,0 +1,43 @@
+Model: Seq2Seq
+    Input(Eng)       : go . 
+    Target(Fra)      : bouge ! 
+    Translated(Fra)  : va y .
+--------------------------------------------------
+    Input(Eng)       : hello ! 
+    Target(Fra)      : bonjour ! 
+    Translated(Fra)  : bonjour !
+--------------------------------------------------
+    Input(Eng)       : got it ! 
+    Target(Fra)      : j ai pige ! 
+    Translated(Fra)  : aha !
+--------------------------------------------------
+    Input(Eng)       : go home . 
+    Target(Fra)      : rentre a la maison . 
+    Translated(Fra)  : rentre chez toi .
+--------------------------------------------------
+    Input(Eng)       : get going . 
+    Target(Fra)      : en avant . 
+    Translated(Fra)  : en route !
+--------------------------------------------------
+
+Model: Transformer
+    Input(Eng)       : go . 
+    Target(Fra)      : bouge ! 
+    Translated(Fra)  : va !
+--------------------------------------------------
+    Input(Eng)       : hello ! 
+    Target(Fra)      : bonjour ! 
+    Translated(Fra)  : salut !
+--------------------------------------------------
+    Input(Eng)       : got it ! 
+    Target(Fra)      : j ai pige ! 
+    Translated(Fra)  : c est pas !
+--------------------------------------------------
+    Input(Eng)       : go home . 
+    Target(Fra)      : rentre a la maison . 
+    Translated(Fra)  : rentrez chez vous .
+--------------------------------------------------
+    Input(Eng)       : get going . 
+    Target(Fra)      : en avant . 
+    Translated(Fra)  : deplacez vous .
+--------------------------------------------------

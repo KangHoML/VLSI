@@ -34,7 +34,7 @@ class MultiHeadAttention(nn.Module):
     def forward(self, query, key, value, mask=None):
         batch_size = query.size()[0]
 
-        # (batch_size, seq_len, hidden_size) -> (batch_size, num_heads, attn_size, attn_size)
+        # (batch_size, seq_len, hidden_size) -> (batch_size, num_heads, seq_len, attn_size)
         query = self.query_embed(query).view(batch_size, -1, self.num_heads, self.attn_size).transpose(1, 2)
         key = self.key_embed(key).view(batch_size, -1, self.num_heads, self.attn_size).transpose(1, 2)
         value = self.value_embed(value).view(batch_size, -1, self.num_heads, self.attn_size).transpose(1, 2)
@@ -100,8 +100,8 @@ class Encoder(nn.Module):
         self.device = device
 
     def forward(self, src, mask):
-        src_embed = self.src_embed(src)
         src_len = src.size(1)
+        src_embed = self.src_embed(src)
         src_embed += self.positional_encoding[:, :src_len, :]
         encoder_output = src_embed
         for encoder in self.encoder:
@@ -121,7 +121,7 @@ class DecoderLayer(nn.Module):
         look_ahead_attn = self.attention(trg, trg, trg, look_ahead_mask)
         res_out = trg + self.norm(look_ahead_attn)
         
-        attn = self.attention(encoder_output, encoder_output, res_out, pad_mask)
+        attn = self.attention(res_out, encoder_output, encoder_output, pad_mask)
         res_out = res_out + self.norm(attn)
 
         ffnn_out = self.ffnn(res_out)
@@ -136,12 +136,12 @@ class Decoder(nn.Module):
         self.positional_encoding = positional_encoding(hidden_size, max_seq_len, device)
         self.trg_embed = nn.Embedding(trg_vocab_size, hidden_size)
 
-        self.max_seq__len = max_seq_len
+        self.max_seq_len = max_seq_len
         self.device = device
 
     def forward(self, trg, encoder_output, pad_mask, look_ahead_mask):
-        trg_embed = self.trg_embed(trg)
         trg_len = trg.size(1)
+        trg_embed = self.trg_embed(trg)
         trg_embed += self.positional_encoding[:, :trg_len, :]
         decoder_output = trg_embed
         for decoder in self.decoder:

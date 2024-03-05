@@ -41,7 +41,7 @@ def plot_loss(model, train_losses, val_losses):
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
 
-    title = f"{args.model}"
+    title = f"{model}"
     plt.title(title)
     plt.legend()
     plt.grid()

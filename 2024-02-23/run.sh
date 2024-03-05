@@ -9,3 +9,5 @@ python3 train.py --data_path "../../datasets/fra_eng.txt" \
                  --num_layer 6 \
                  --max_seq_len 16 \
                  > ./result/Transformer.txt
+
+python3 translate.py > ./result/Translation.txt

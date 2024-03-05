@@ -68,7 +68,7 @@ def positional_encoding(hidden_size, max_seq_len, device):
         pe[:, 0::2] = torch.sin(position / div_term)
         pe[:, 1::2] = torch.cos(position / div_term)
 
-        pe.unsqueeze(0)
+        pe = pe.unsqueeze(0)
 
         return pe.to(device)
 
@@ -101,7 +101,8 @@ class Encoder(nn.Module):
 
     def forward(self, src, mask):
         src_embed = self.src_embed(src)
-        src_embed += self.positional_encoding
+        src_len = src.size(1)
+        src_embed += self.positional_encoding[:, :src_len, :]
         encoder_output = src_embed
         for encoder in self.encoder:
             encoder_output = encoder(encoder_output, mask)
@@ -140,7 +141,8 @@ class Decoder(nn.Module):
 
     def forward(self, trg, encoder_output, pad_mask, look_ahead_mask):
         trg_embed = self.trg_embed(trg)
-        trg_embed += self.positional_encoding
+        trg_len = trg.size(1)
+        trg_embed += self.positional_encoding[:, :trg_len, :]
         decoder_output = trg_embed
         for decoder in self.decoder:
             decoder_output = decoder(decoder_output, encoder_output, pad_mask, look_ahead_mask)

@@ -185,7 +185,7 @@ class Transformer(nn.Module):
 
     def forward(self, src, trg):
         src_mask = self.create_pad_mask(src, src)
-        encoder_output =self.encoder(src, src_mask)
+        encoder_output = self.encoder(src, src_mask)
 
         trg_pad_mask = self.create_pad_mask(trg, src)
         trg_look_ahead_mask = self.create_look_ahead_mask(trg)

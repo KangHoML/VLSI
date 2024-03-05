@@ -7,6 +7,7 @@ from transformer import Transformer
 def seq_to_src(dataset, input_seq):
     sent = ''
     for encoded_word in input_seq:
+        encoded_word = encoded_word.item()
         if encoded_word != 0 :
             sent = sent + dataset.index_to_src[encoded_word] + ' '
     return sent
@@ -14,6 +15,7 @@ def seq_to_src(dataset, input_seq):
 def seq_to_trg(dataset, input_seq):
     sent = ''
     for encoded_word in input_seq:
+        encoded_word = encoded_word.item()
         if (encoded_word != 0 and encoded_word != dataset.trg_vocab['<sos>'] and 
             encoded_word != dataset.trg_vocab['<eos>']):
             sent = sent + dataset.index_to_trg[encoded_word] + ' '
@@ -21,29 +23,27 @@ def seq_to_trg(dataset, input_seq):
 
 
 def decode_seq(dataset, net, input_seq, max_seq_len, device):
-    input_seq = torch.tensor(input_seq, dtype=torch.long).to(device)
-    hidden, cell = net.encoder(input_seq)
-
-    decoder_input = torch.tensor([dataset.trg_vocab['<sos>']],
-                                  dtype=torch.long).unsqueeze(0).to(device)
-    decoded_token = []
-
+    encoder_input = torch.tensor(input_seq, dtype=torch.long).unsqueeze(0).to(device)
+    output_seq = [dataset.trg_vocab['<sos>']]
+    
     for _ in range(max_seq_len):
-        output, hidden, cell = net.decoder(decoder_input, hidden, cell)
-        output_token = output.argmax(dim=-1).item()
-
-        if output_token == dataset.trg_vocab['<eos>']:
+        decoder_input = torch.tensor([output_seq], dtype=torch.long).to(device)
+        
+        with torch.no_grad():
+            output = net(encoder_input, decoder_input)
+            next_token = output[:, -1, :].argmax(dim=-1).item()
+        
+        if next_token == dataset.trg_vocab['<eos>']:
             break
 
-        decoded_token.apeend(output_token)
-        decoder_input = torch.tensor([output_token],
-                                     dtype=torch.long).unsqueeze(0).to(device)
-    
-    decoded_seq = ' '.join(dataset.index_to_src[token] for token in decoded_token)
+        output_seq.append(next_token)
+
+    decoded_seq = ' '.join(dataset.index_to_trg[token] for token in output_seq
+                           if token not in [dataset.trg_vocab['<sos>'], dataset.trg_vocab['<eos>']])
     return decoded_seq
 
 def translate(dataset, net, device):
-    net = net.to(device)
+    net.eval()
     for seq_idx in [3, 50, 100, 300, 1001]:
         data = dataset[seq_idx]
         encoder_input_seq = data["encoder_input"]
@@ -56,18 +56,18 @@ def translate(dataset, net, device):
         print("-" * 50)
 
 if __name__ == "__main__":
-    data_path = "../../dat,asets/fra_eng.txt"
+    data_path = "../../datasets/fra_eng.txt"
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     dataset = TextDataset(data_path, num_sample=33000, max_len=16)
     src_vocab_size, trg_vocab_size = len(dataset.src_vocab), len(dataset.trg_vocab)
 
     print("Model: Seq2Seq")
-    net = Seq2Seq(src_vocab_size, trg_vocab_size, 256)
+    net = Seq2Seq(src_vocab_size, trg_vocab_size, 256).to(device)
     net.load_state_dict(torch.load('./result/Seq2Seq.pth'))
     translate(dataset, net, device)
 
-    print("Model: Transformer")
+    print("\nModel: Transformer")
     net = Transformer(512, 6, src_vocab_size, trg_vocab_size, 0, 0,
-                      max_seq_len=16, device=device)
+                      max_seq_len=16, device=device).to(device)
     net.load_state_dict(torch.load("./result/Transformer.pth"))
-    translate(dataset, net, device)    
+    translate(dataset, net, device)

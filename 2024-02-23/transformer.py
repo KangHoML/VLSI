@@ -58,6 +58,9 @@ class FeedForword(nn.Module):
 
         return x
 
+'''
+add th
+'''
 def positional_encoding(hidden_size, max_seq_len, device):
         position = torch.arange(0, max_seq_len, dtype=torch.float).unsqueeze(1)
         pe = torch.zeros(max_seq_len, hidden_size)
@@ -72,6 +75,10 @@ def positional_encoding(hidden_size, max_seq_len, device):
 
         return pe.to(device)
 
+'''
+Input : embedded & positional encoded input sequence of encoder or (t-1) EncoderLayer's output (batch_size, seq_len, hidden_size)
+Output : Output of present EncoderLayer's output (batch_size, seq_len, hidden_size)
+'''
 class EncoderLayer(nn.Module):
     def __init__(self, hidden_size):
         super().__init__()
@@ -89,6 +96,10 @@ class EncoderLayer(nn.Module):
 
         return output
 
+'''
+Input(encoder_input) : input sequence of encoder & encoding with source_vocab (batch_size, seq_len)
+Output(encoder_output) : context_vector of input sequence (batch_size, seq_len, hidden_size)
+'''
 class Encoder(nn.Module):
     def __init__(self, hidden_size, num_layers, src_vocab_size, max_seq_len, device):
         super().__init__()
@@ -100,8 +111,8 @@ class Encoder(nn.Module):
         self.device = device
 
     def forward(self, src, mask):
-        src_len = src.size(1)
-        src_embed = self.src_embed(src)
+        src_len = src.size(1) # sequence length of input sequence
+        src_embed = self.src_embed(src) # (batch_size, seq_len) -> (batch_size, seq_len, hidden_size)
         src_embed += self.positional_encoding[:, :src_len, :]
         encoder_output = src_embed
         for encoder in self.encoder:
@@ -186,7 +197,7 @@ class Transformer(nn.Module):
         return trg_mask.to(self.device)
 
     def forward(self, src, trg):
-        src_mask = self.create_pad_mask(src, src)
+        src_mask = self.create_pad_mask(src, src) # mask the <pad> token in encoder_input sequence
         encoder_output = self.encoder(src, src_mask)
 
         trg_pad_mask = self.create_pad_mask(trg, src)

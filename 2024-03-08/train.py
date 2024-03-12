@@ -14,7 +14,8 @@ from tqdm import tqdm
 from data import CIFAR10Dataset
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_path", type=str, default="./datasets/CIFAR-10")
+parser.add_argument("--data_path", type=str, default="../../datasets/CIFAR-10")
+parser.add_argument("--distribution", type=bool, default=True)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--learning_rate", type=float, default=0.01)
 parser.add_argument("--epoch", type=int, default=20)
@@ -32,30 +33,47 @@ def plot_loss(train_losses, val_losses):
     plt.grid()
     plt.savefig(f'./result/{title}.png')
 
-dist.init_process_group("nccl")
+def initialize_group():
+    
+
+    return rank, world_size
+
 
 def train(args):
     os.makedirs("result", exist_ok=True)
-
-    device = torch.cuda.current_device()
-    print(f"Device : {device}")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_dataset, val_dataset = CIFAR10Dataset(args.data_path, True), \
                                  CIFAR10Dataset(args.data_path, False)
-    train_sampler = DistributedSampler(train_dataset, shuffle=True)
+    
+    if args.distribution:
+        dist.init_process_group("nccl")
+        rank = dist.get_rank()
+        torch.cuda.set_device(rank)
+        world_size = dist.get_world_size()
+        train_sampler = DistributedSampler(train_dataset, shuffle=True, num_replicas=world_size, rank=rank)
+    else:
+        train_sampler = None
 
-    train_loader, val_loader = DataLoader(train_dataset, batch_size=args.batch_size, sampler=train_sampler, shuffle=False, num_workers=4, pin_memory=True), \
-                               DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    train_loader, val_loader = DataLoader(train_dataset, batch_size=args.batch_size, sampler=train_sampler,
+                                           shuffle=(not args.distribution), num_workers=4, pin_memory=True), \
+                               DataLoader(val_dataset, batch_size=args.batch_size,
+                                           shuffle=False, num_workers=4, pin_memory=True)
     
     net = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1).to(device)
-    net = net.DistributedDataParallel(net, device_ids=[device], output_device=device)
+    if args.distribution:
+        net = DistributedDataParallel(net)
     criterion = CrossEntropyLoss()
     optimizer = Adam(net.parameters(), lr=args.learning_rate)
     scaler = torch.cuda.amp.GradScaler()
 
     train_losses = []
     val_losses = []
+
     for epoch in range(args.epoch):
+        if args.distribution:
+            train_sampler.set_epoch(epoch)
+
         train_loss = 0.0
         train_correct = 0
         train_total = 0
@@ -67,10 +85,11 @@ def train(args):
             labels = labels.to(device)
             optimizer.zero_grad()
 
+            
             with torch.cuda.amp.autocast():
                 outputs = net(inputs)
                 loss = criterion(outputs, labels)
-            
+
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -109,11 +128,16 @@ def train(args):
         val_accuracy = 100 * val_correct / val_total
         val_losses.append(val_loss)
 
-        print(f"Epoch [{epoch+1}/{args.epoch}]")
-        print(f"  Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy:.2f}%")
-        print(f"  Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%")
+        if rank == 0 or not args.distribution:
+            print(f"Epoch [{epoch+1}/{args.epoch}]")
+            print(f"  Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy:.2f}%")
+            print(f"  Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%")
     
-    plot_loss(train_losses, val_losses)
+    if rank == 0 or not args.distribution:
+        plot_loss(train_losses, val_losses)
+    
+    if args.distribution:
+        dist.destroy_process_group()
 
 if __name__ == "__main__":
     args = parser.parse_args()

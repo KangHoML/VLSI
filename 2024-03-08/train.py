@@ -2,9 +2,11 @@ import os
 import torch
 import argparse
 import matplotlib.pyplot as plt
+import torch.distributed as dist
 
 from torchvision.models import resnet50, ResNet50_Weights
-from torch.utils.data import DataLoader
+from torch.nn.parallel import DistributedDataParallel
+from torch.utils.data import DataLoader, DistributedSampler
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 from tqdm import tqdm
@@ -30,41 +32,48 @@ def plot_loss(train_losses, val_losses):
     plt.grid()
     plt.savefig(f'./result/{title}.png')
 
+dist.init_process_group("nccl")
+
 def train(args):
     os.makedirs("result", exist_ok=True)
 
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    device = torch.cuda.current_device()
     print(f"Device : {device}")
 
     train_dataset, val_dataset = CIFAR10Dataset(args.data_path, True), \
                                  CIFAR10Dataset(args.data_path, False)
-    train_loader, val_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4), \
-                               DataLoader(val_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
+    train_sampler = DistributedSampler(train_dataset, shuffle=True)
+
+    train_loader, val_loader = DataLoader(train_dataset, batch_size=args.batch_size, sampler=train_sampler, shuffle=False, num_workers=4, pin_memory=True), \
+                               DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4, pin_memory=True)
     
-    net = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1).device()
+    net = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1).to(device)
+    net = net.DistributedDataParallel(net, device_ids=[device], output_device=device)
     criterion = CrossEntropyLoss()
     optimizer = Adam(net.parameters(), lr=args.learning_rate)
+    scaler = torch.cuda.amp.GradScaler()
 
     train_losses = []
     val_losses = []
-
     for epoch in range(args.epoch):
         train_loss = 0.0
         train_correct = 0
         train_total = 0
 
         net.train()
-
+        
         for inputs, labels in tqdm(train_loader):
             inputs = inputs.to(device)
             labels = labels.to(device)
             optimizer.zero_grad()
 
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
-
-            loss.backward()
-            optimizer.step()
+            with torch.cuda.amp.autocast():
+                outputs = net(inputs)
+                loss = criterion(outputs, labels)
+            
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             _, predicted = torch.max(outputs.data, 1)
             train_total += labels.size(0)

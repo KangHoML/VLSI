@@ -29,6 +29,7 @@ class BasicBlock(nn.Module):
         else:
             x += shortcut
         
+        x = self.act(x)
         return x
 
 class BottleNeck(nn.Module):
@@ -36,10 +37,10 @@ class BottleNeck(nn.Module):
         super().__init__()
         
         self.conv = nn.Sequential(
-            nn.LazyConv2d(out_channels, kernel_size=1, stride=stride),
+            nn.LazyConv2d(out_channels, kernel_size=1, stride=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(),
             nn.Conv2d(out_channels, out_channels*4, kernel_size=1),

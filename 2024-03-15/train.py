@@ -4,7 +4,6 @@ import argparse
 import matplotlib.pyplot as plt
 import torch.distributed as dist
 
-from resnext import ResNeXt
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.nn import CrossEntropyLoss
@@ -12,6 +11,7 @@ from torch.optim import Adam
 from tqdm import tqdm
 
 from data import CIFAR10Dataset
+from resnext import ResNeXt
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="../../datasets/CIFAR-10")

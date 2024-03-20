@@ -10,17 +10,17 @@
 #                  >> ./result/VGG.txt
 
 # effects of depth in ResNet
-python3 train.py --data_path "../../datasets/CIFAR-10" \
-                 --model "ResNet34" \
-                 > ./result/ResNet.txt
+torchrun --nproc_per_node=4 train.py --data_path "../../datasets/CIFAR-10" \
+                                     --model "ResNet34" \
+                                     > ./result/ResNet.txt
 
-python3 train.py --data_path "../../datasets/CIFAR-10" \
-                 --model "ResNet50" \
-                 >> ./result/ResNet.txt
+torchrun --nproc_per_node=4 train.py --data_path "../../datasets/CIFAR-10" \
+                                     --model "ResNet50" \
+                                     >> ./result/ResNet.txt
 
-python3 train.py --data_path "../../datasets/CIFAR-10" \
-                 --model "ResNet101" \
-                 >> ./result/ResNet.txt
+torchrun --nproc_per_node=4 train.py --data_path "../../datasets/CIFAR-10" \
+                                     --model "ResNet101" \
+                                     >> ./result/ResNet.txt
 
 # # effects of kernel_size in CustomNet
 # python3 train.py --data_path "../../datasets/CIFAR-10" \

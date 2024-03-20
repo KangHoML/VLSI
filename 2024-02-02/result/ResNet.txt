@@ -1,7 +1,4 @@
 Device : cuda
-Device : cuda
-Device : cuda
-Device : cuda
 Epoch [1/20]
   Train Loss: 2.3310, Train Accuracy: 19.49%
   Val Loss: 3.8678, Val Accuracy: 26.83%
@@ -63,9 +60,6 @@ Epoch [20/20]
   Train Loss: 0.8136, Train Accuracy: 71.34%
   Val Loss: 0.7897, Val Accuracy: 73.62%
 Device : cuda
-Device : cuda
-Device : cuda
-Device : cuda
 Epoch [1/20]
   Train Loss: 3.4936, Train Accuracy: 12.86%
   Val Loss: 2.2696, Val Accuracy: 15.54%
@@ -126,9 +120,6 @@ Epoch [19/20]
 Epoch [20/20]
   Train Loss: 1.1796, Train Accuracy: 57.79%
   Val Loss: 1.0482, Val Accuracy: 62.29%
-Device : cuda
-Device : cuda
-Device : cuda
 Device : cuda
 Epoch [1/20]
   Train Loss: 3.3334, Train Accuracy: 11.25%

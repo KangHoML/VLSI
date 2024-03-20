@@ -4,7 +4,7 @@ import argparse
 import matplotlib.pyplot as plt
 import torch.distributed as dist
 
-from torchvision.models import resnet50, ResNet50_Weights
+from resnext import ResNeXt
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.nn import CrossEntropyLoss
@@ -15,19 +15,20 @@ from data import CIFAR10Dataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="../../datasets/CIFAR-10")
+parser.add_argument("--model", type=str, default="ResNeXt50")
 parser.add_argument("--distribution", type=bool, default=True)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--learning_rate", type=float, default=0.01)
 parser.add_argument("--epoch", type=int, default=20)
 
-def plot_loss(train_losses, val_losses):
+def plot_loss(args, train_losses, val_losses):
     plt.figure(figsize=(10, 5))
     plt.plot(range(1, len(train_losses)+1), train_losses, label ='Train_Loss', marker ='o')
     plt.plot(range(1, len(val_losses)+1), val_losses, label ='Validation_Loss', marker ='o')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
 
-    title = "ResNet50 with pretrained"
+    title = f"{args.model}"
     plt.title(title)
     plt.legend()
     plt.grid()
@@ -54,7 +55,7 @@ def train(args):
                                DataLoader(val_dataset, batch_size=args.batch_size,
                                            shuffle=False, num_workers=4, pin_memory=True)
     
-    net = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1).to(device)
+    net = ResNeXt(cfgs=args.model).to(device)
     if args.distribution:
         net = DistributedDataParallel(net)
     criterion = CrossEntropyLoss()
@@ -128,7 +129,7 @@ def train(args):
             print(f"  Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%")
     
     if rank == 0 or not args.distribution:
-        plot_loss(train_losses, val_losses)
+        plot_loss(args, train_losses, val_losses)
     
     if args.distribution:
         dist.destroy_process_group()

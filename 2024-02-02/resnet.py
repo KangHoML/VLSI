@@ -37,10 +37,10 @@ class BottleNeck(nn.Module):
         super().__init__()
         
         self.conv = nn.Sequential(
-            nn.LazyConv2d(out_channels, kernel_size=1, stride=1),
+            nn.LazyConv2d(out_channels, kernel_size=1, stride=stride),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride, padding=1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(),
             nn.Conv2d(out_channels, out_channels*4, kernel_size=1),
@@ -73,7 +73,7 @@ class ResNet(nn.Module):
         'ResNet34': ((3, 64), (4, 128), (6, 256), (3, 512)),
         'ResNet50': ((3, 64), (4, 128), (6, 256), (3, 512)),
         'ResNet101': ((3, 64), (4, 128), (23, 256), (3, 512)),
-        'ResNet152': ((3, 64), (8, 128), (36, 256), (3, 512)),
+        'ResNet152': ((3, 64), (8, 128), (36, 256), (3, 512))
     }
 
     def __init__(self, num_classes=10, cfg="ResNet18"):

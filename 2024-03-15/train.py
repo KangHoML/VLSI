@@ -55,9 +55,12 @@ def train(args):
                                DataLoader(val_dataset, batch_size=args.batch_size,
                                            shuffle=False, num_workers=4, pin_memory=True)
     
-    net = ResNeXt(cfgs=args.model).to(device)
+    net = ResNeXt(cfg=args.model).to(device)
     if args.distribution:
-        net = DistributedDataParallel(net)
+        dummy_input = torch.randn(16, 3, 32, 32, device=device)
+        with torch.no_grad():
+            net(dummy_input)
+        net = DistributedDataParallel(net, find_unused_parameters=True)
     criterion = CrossEntropyLoss()
     optimizer = Adam(net.parameters(), lr=args.learning_rate)
     scaler = torch.cuda.amp.GradScaler()

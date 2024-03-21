@@ -8,6 +8,7 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
 
 from data import CIFAR10Dataset
@@ -19,6 +20,7 @@ parser.add_argument("--model", type=str, default="ResNeXt50")
 parser.add_argument("--distribution", type=bool, default=True)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--learning_rate", type=float, default=0.01)
+parser.add_argument("--schedular", type=bool, default=True)
 parser.add_argument("--epoch", type=int, default=20)
 
 def plot_loss(args, train_losses, val_losses):
@@ -64,9 +66,12 @@ def train(args):
     criterion = CrossEntropyLoss()
     optimizer = Adam(net.parameters(), lr=args.learning_rate)
     scaler = torch.cuda.amp.GradScaler()
+    if args.schedular:
+        scheduler = CosineAnnealingLR(optimizer, T_max=50, eta_min=0)
 
     train_losses = []
     val_losses = []
+    best_loss = float('inf')
 
     for epoch in range(args.epoch):
         if args.distribution:
@@ -102,6 +107,9 @@ def train(args):
         train_accuracy = 100 * train_correct / train_total
         train_losses.append(train_loss)
 
+        if args.schedular:
+            scheduler.step()
+
         val_loss = 0.0
         val_correct = 0
         val_total = 0
@@ -130,6 +138,10 @@ def train(args):
             print(f"Epoch [{epoch+1}/{args.epoch}]")
             print(f"  Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy:.2f}%")
             print(f"  Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%")
+
+            if val_loss < best_loss:
+                best_loss = val_loss
+                torch.save(net.module.state_dict(), f'./result/{args.model}.pth')  
     
     if rank == 0 or not args.distribution:
         plot_loss(args, train_losses, val_losses)

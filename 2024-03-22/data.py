@@ -13,14 +13,27 @@ class IMDBDataset(Dataset):
         self.root = os.path.join(root, "IMDBDataset.csv")
         self.mode = mode
         self.df = pd.read_csv(self.root)
+        self.tokenizer = get_tokenizer("basic_english")
+
+        self.df['sentiment'] = self.df['sentiment'].replace(['positive', 'negative'], [1, 0])
+        texts, labels = self.df['review'], self.df['sentiment']
+        tokenized_texts = self._tokenize(texts)
+
+        X_train, X_test, y_train, y_test = train_test_split(tokenized_texts, labels, test_size=0.5, 
+                                                    random_state=0, stratify=labels)
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2,
+                                                        random_state=0, stratify=y_train)
         
-        text_data, label_data = self._preprocess_data()
-        text_data = self._tokenize(text_data)
-        
-        self.train_set = self._tokenize(self.train_set)
-        self.vocab = self._build_vocab(threshold)
+        self.vocab = self._build_vocab(X_train + X_val, threshold)
         self.index_to_vocab = {v: k for k, v in self.vocab.items()}
         
+        if self.mode == 'train':
+            text_data, label_data = X_train, y_train
+        elif self.mode == 'val':
+            text_data, label_data = X_val, y_val
+        elif self.mode == 'test':
+            text_data, label_data = X_test, y_test
+
         text_data = self._text_to_seq(text_data, self.vocab)
         self.text_data = self._pad_sequence(text_data, max_len)
         self.label_data = label_data.to_list()
@@ -32,30 +45,9 @@ class IMDBDataset(Dataset):
         text = torch.tensor(self.text_data[idx], dtype=torch.long)
         label = self.label_data[idx]
         return text, label
-    
-    def _preprocess_data(self):
-        self.df['sentiment'] = self.df['sentiment'].replace(['positive', 'negative'], [1, 0])
-        texts, labels = self.df['review'], self.df['sentiment']
-
-        X_train, X_test, y_train, y_test = train_test_split(texts, labels, test_size=0.5, 
-                                                    random_state=0, stratify=labels)
-        
-        self.train_set = X_train
-        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2,
-                                                        random_state=0, stratify=y_train)
-
-        if self.mode == 'train':
-            return X_train, y_train
-        elif self.mode == 'val':
-            return X_val, y_val
-        elif self.mode == 'test':
-            return X_test, y_test
-        else:
-            raise NotImplementedError(self.mode)
         
     def _tokenize(self, sents):
         tokenized_sents = []
-        self.tokenizer = get_tokenizer("basic_english")
         for sent in sents:
             tokenized_sent = self.tokenizer(sent)
             tokenized_sent = [word.lower() for word in tokenized_sent]
@@ -63,9 +55,9 @@ class IMDBDataset(Dataset):
         
         return tokenized_sents
 
-    def _build_vocab(self, threshold):
+    def _build_vocab(self, tokenized_texts, threshold):
         word_list = []
-        for sent in self.train_set:
+        for sent in tokenized_texts:
             for word in sent:
                 word_list.append(word)
         word_count = Counter(word_list)
@@ -112,6 +104,5 @@ if __name__ == '__main__':
     data_path = '../../datasets/'
     train_dataset = IMDBDataset(data_path, mode='train')
     text, label = train_dataset[0]
-    print(f"vocab length: {len(train_dataset.vocab)}")
     print(f"text shape: {text.shape}")
     

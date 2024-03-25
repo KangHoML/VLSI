@@ -25,9 +25,11 @@ parser.add_argument("--is_ddp", type=bool, default=False)
 parser.add_argument("--is_amp", type=bool, default=False)
 
 # -- hyperparameter about model
-parser.add_argument("--model", type=str, default='rnn')
+parser.add_argument("--model", type=str, default='gru')
+parser.add_argument("--hidden_size", type=int, default=128)
+parser.add_argument("--embed_size", type=int, default=100)
 parser.add_argument("--n_layers", type=int, default=1)
-parser.add_argument("--dropout", type=float, default=0)
+parser.add_argument("--dropout", type=float, default=0.0)
 parser.add_argument("--bidirectional", type=bool, default=False)
 
 # -- hyperparameter about train
@@ -35,8 +37,8 @@ parser.add_argument("--optimizer", type=str, default='Adam')
 parser.add_argument("--lr_scheduler", type=str, default='Step')
 parser.add_argument("--step_size", type=float, default=1.0)
 parser.add_argument("--gamma", type=float, default=0.1)
-parser.add_argument("--batch_size", type=int, default=64)
-parser.add_argument("--learning_rate", type=float, default=1e-4)
+parser.add_argument("--batch_size", type=int, default=32)
+parser.add_argument("--learning_rate", type=float, default=1e-3)
 parser.add_argument("--epoch", type=int, default=10)
 
 def plot_loss(train_losses, val_losses):
@@ -94,10 +96,10 @@ def main():
                                           shuffle=False, num_workers=4, pin_memory=True)
 
     # define the model instance
-    net = SentenceClassifier(vocab_size, hidden_size=64, embed_size=128, n_layers=args.n_layers, 
+    net = SentenceClassifier(vocab_size, hidden_size=args.hidden_size, embed_size=args.embed_size, n_layers=args.n_layers, 
                              dropout=args.dropout, bidirectional=args.bidirectional, model_type=args.model).to(device)
     if args.is_ddp:
-        net = DistributedDataParallel(net, find_unused_parameters=True)
+        net = DistributedDataParallel(net)
     
     # define the CrossEntropyLoss
     criterion = CrossEntropyLoss()
@@ -214,5 +216,3 @@ if __name__ == "__main__":
 
     os.makedirs("result", exist_ok=True)
     main()
-
-

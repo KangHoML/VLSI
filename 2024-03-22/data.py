@@ -1,12 +1,10 @@
 import os
-import nltk
 import torch
 import pandas as pd
 import numpy as np
 
-from tqdm import tqdm
 from collections import Counter
-from nltk.tokenize import word_tokenize
+from torchtext.data.utils import get_tokenizer
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 
@@ -14,11 +12,12 @@ class IMDBDataset(Dataset):
     def __init__(self, root, threshold=3, max_len=500, mode='train'):
         self.root = os.path.join(root, "IMDBDataset.csv")
         self.mode = mode
-        self.df = self._load_data()
+        self.df = pd.read_csv(self.root)
         
         text_data, label_data = self._preprocess_data()
         text_data = self._tokenize(text_data)
         
+        self.train_set = self._tokenize(self.train_set)
         self.vocab = self._build_vocab(threshold)
         self.index_to_vocab = {v: k for k, v in self.vocab.items()}
         
@@ -33,10 +32,6 @@ class IMDBDataset(Dataset):
         text = torch.tensor(self.text_data[idx], dtype=torch.long)
         label = self.label_data[idx]
         return text, label
-
-    def _load_data(self):
-        nltk.download('punkt')
-        return pd.read_csv(self.root)
     
     def _preprocess_data(self):
         self.df['sentiment'] = self.df['sentiment'].replace(['positive', 'negative'], [1, 0])
@@ -45,9 +40,9 @@ class IMDBDataset(Dataset):
         X_train, X_test, y_train, y_test = train_test_split(texts, labels, test_size=0.5, 
                                                     random_state=0, stratify=labels)
         
+        self.train_set = X_train
         X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2,
                                                         random_state=0, stratify=y_train)
-        self.train_texts = X_train
 
         if self.mode == 'train':
             return X_train, y_train
@@ -60,8 +55,9 @@ class IMDBDataset(Dataset):
         
     def _tokenize(self, sents):
         tokenized_sents = []
-        for sent in tqdm(sents):
-            tokenized_sent = word_tokenize(sent)
+        self.tokenizer = get_tokenizer("basic_english")
+        for sent in sents:
+            tokenized_sent = self.tokenizer(sent)
             tokenized_sent = [word.lower() for word in tokenized_sent]
             tokenized_sents.append(tokenized_sent)
         
@@ -69,7 +65,7 @@ class IMDBDataset(Dataset):
 
     def _build_vocab(self, threshold):
         word_list = []
-        for sent in self.train_texts:
+        for sent in self.train_set:
             for word in sent:
                 word_list.append(word)
         word_count = Counter(word_list)
@@ -115,6 +111,7 @@ class IMDBDataset(Dataset):
 if __name__ == '__main__':
     data_path = '../../datasets/'
     train_dataset = IMDBDataset(data_path, mode='train')
-    text, label = train_dataset[10]
+    text, label = train_dataset[0]
+    print(f"vocab length: {len(train_dataset.vocab)}")
     print(f"text shape: {text.shape}")
     

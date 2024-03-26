@@ -100,9 +100,9 @@ def main():
     
     # define the dataloader
     train_loader, val_loader = DataLoader(train_dataset, batch_size=args.batch_size, sampler=train_sampler, 
-                                          shuffle=(not args.is_ddp), num_workers=4, pin_memory=False, collate_fn=collate_fn), \
+                                          shuffle=(not args.is_ddp), num_workers=4, pin_memory=True, collate_fn=collate_fn), \
                                DataLoader(val_dataset, batch_size=args.batch_size, 
-                                          shuffle=False, num_workers=4, pin_memory=False, collate_fn=collate_fn)
+                                          shuffle=False, num_workers=4, pin_memory=True, collate_fn=collate_fn)
 
     # define the model instance
     net = SentenceClassifier(vocab_size, hidden_size=args.hidden_size, embed_size=args.embed_size, n_layers=args.n_layers, 

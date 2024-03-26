@@ -5,7 +5,7 @@ import torch.nn as nn
 Input:
     input sequence of text (batch_size, seq_len)
 Output:
-    binary class(0 or 1) of sentence (batch_size, 1)
+    binary class(0 or 1) of sentence (batch_size, 2)
 '''
 class SentenceClassifier(nn.Module):
     def __init__(self, n_vocab, hidden_size, embed_size, n_layers=1,

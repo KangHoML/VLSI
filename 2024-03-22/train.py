@@ -138,7 +138,6 @@ def main():
         for inputs, labels in tqdm(train_loader):
             inputs = inputs.to(device)
             labels = labels.to(device)
-            optimizer.zero_grad()
 
             if scaler is not None:
                 with torch.cuda.amp.autocast():
@@ -148,7 +147,9 @@ def main():
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
+                optimizer.zero_grad(set_to_none=True)
             else:
+                optimizer.zero_grad()
                 outputs = net(inputs)
                 loss = criterion(outputs, labels)
                 

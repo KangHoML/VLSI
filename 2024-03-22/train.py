@@ -35,7 +35,7 @@ parser.add_argument("--bidirectional", type=bool, default=False)
 # -- hyperparameter about train
 parser.add_argument("--optimizer", type=str, default='Adam')
 parser.add_argument("--lr_scheduler", type=str, default='Step')
-parser.add_argument("--step_size", type=float, default=1.0)
+parser.add_argument("--step_size", type=int, default=1)
 parser.add_argument("--gamma", type=float, default=0.1)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--learning_rate", type=float, default=1e-3)

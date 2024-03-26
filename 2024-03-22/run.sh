@@ -1,6 +1,6 @@
 torchrun --nproc_per_node 4 train.py --is_ddp True \
                                      --is_amp False \
-                                     --hidden_size 256 \
+                                     --hidden_size 512 \
                                      --embed_size 128 \
                                      --dropout 0.2 \
                                      --model 'gru' \

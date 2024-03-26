@@ -41,6 +41,9 @@ parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--learning_rate", type=float, default=1e-3)
 parser.add_argument("--epoch", type=int, default=10)
 
+# -- hyperparamter for saving model
+parser.add_argument("--save", type=str, default="rnn_1")
+
 def plot_loss(train_losses, val_losses):
     plt.figure(figsize=(10, 5))
     plt.plot(range(1, len(train_losses)+1), train_losses, label ='Train_Loss', marker ='o')
@@ -211,7 +214,7 @@ def main():
                     weights = net.module.state_dict()
                 else:
                     weights = net.state_dict()
-                torch.save(weights, f'./result/{args.model}.pth')
+                torch.save(weights, f'./result/{args.save}.pth')
 
     if rank == 0:
         plot_loss(train_losses, val_losses)

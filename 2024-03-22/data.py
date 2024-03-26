@@ -1,108 +1,71 @@
 import os
 import torch
 import pandas as pd
-import numpy as np
 
-from collections import Counter
+from torch.utils.data import Dataset, random_split
 from torchtext.data.utils import get_tokenizer
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Dataset
+from torchtext.vocab import build_vocab_from_iterator
 
 class IMDBDataset(Dataset):
-    def __init__(self, root, threshold=3, max_len=500, mode='train'):
-        self.root = os.path.join(root, "IMDBDataset.csv")
-        self.mode = mode
-        self.df = pd.read_csv(self.root)
-        self.tokenizer = get_tokenizer("basic_english")
-
-        self.df['sentiment'] = self.df['sentiment'].replace(['positive', 'negative'], [1, 0])
-        texts, labels = self.df['review'], self.df['sentiment']
-        tokenized_texts = self._tokenize(texts)
-
-        X_train, X_test, y_train, y_test = train_test_split(tokenized_texts, labels, test_size=0.5, 
-                                                    random_state=0, stratify=labels)
-        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2,
-                                                        random_state=0, stratify=y_train)
+    def __init__(self, root):
+        super().__init__()
         
-        self.vocab = self._build_vocab(X_train + X_val, threshold)
-        self.index_to_vocab = {v: k for k, v in self.vocab.items()}
+        # setting
+        self.root = os.path.join(root, "train.csv")
+        self.data = pd.read_csv(self.root) # data load
+        self.tokenizer = get_tokenizer('basic_english') # tokenizer 정의
         
-        if self.mode == 'train':
-            text_data, label_data = X_train, y_train
-        elif self.mode == 'val':
-            text_data, label_data = X_val, y_val
-        elif self.mode == 'test':
-            text_data, label_data = X_test, y_test
+        # text 데이터
+        raw_text = self.data['text']
+        self.vocab = self._build_vocab(self.data['text']) # vocab 생성
 
-        text_data = self._text_to_seq(text_data, self.vocab)
-        self.text_data = self._pad_sequence(text_data, max_len)
+        # text 데이터 전처리
+        text_data = []
+        for sent in raw_text:
+            tokenized_sent = self.tokenizer(sent) # 문장을 tokenize
+            encoded_sent = self.vocab(tokenized_sent) # vocab을 통해 encoding된 리스트 반환
+            text_data.append(encoded_sent)
+        self.text_data = text_data
+        
+        # label 데이터
+        label_data = self.data['sentiment'].replace(['pos', 'neg'], [1, 0])
         self.label_data = label_data.to_list()
-
+    
     def __len__(self):
         return len(self.text_data)
     
     def __getitem__(self, idx):
         text = torch.tensor(self.text_data[idx], dtype=torch.long)
         label = self.label_data[idx]
+
         return text, label
-        
-    def _tokenize(self, sents):
-        tokenized_sents = []
-        for sent in sents:
-            tokenized_sent = self.tokenizer(sent)
-            tokenized_sent = [word.lower() for word in tokenized_sent]
-            tokenized_sents.append(tokenized_sent)
-        
-        return tokenized_sents
 
-    def _build_vocab(self, tokenized_texts, threshold):
-        word_list = []
-        for sent in tokenized_texts:
-            for word in sent:
-                word_list.append(word)
-        word_count = Counter(word_list)
-        vocab = sorted(word_count, key=word_count.get, reverse=True)
-        
-        rare_cnt = 0
-        for _, value in word_count.items():
-            if (value < threshold):
-                rare_cnt += 1
-        vocab_size = len(word_count) - rare_cnt
-        vocab = vocab[:vocab_size]
+    # tokenizer를 활용하여 text tokenize
+    def _yield_tokens(self, raw_text):
+        for sent in raw_text:
+            yield self.tokenizer(sent)
 
-        word_to_idx = {}
-        word_to_idx['<PAD>'] = 0 # padding token
-        word_to_idx['<UNK>'] = 1 # unknown token
+    # tokenized된 text를 통해 vocab 생성
+    def _build_vocab(self, raw_text):
+        vocab = build_vocab_from_iterator(self._yield_tokens(raw_text), specials=["<pad>", "<unk>"])
+        vocab.set_default_index(vocab["<pad>"])
+        vocab.set_default_index(vocab["<unk>"])
+        return vocab
 
-        for idx, word in enumerate(vocab):
-            word_to_idx[word] = idx + 2
-        
-        return word_to_idx
+    # train과 validation 데이터셋을 ratio만큼 분할 (8:2)
+    def split_dataset(self, ratio=0.2):
+        data_size = len(self)
+        val_size = int(data_size * ratio)
+        train_size = data_size - val_size
 
-    def _text_to_seq(self, text, word_to_idx):
-        encoded = []
-        for sent in text:
-            seq = []
-            for word in sent:
-                try:
-                    seq.append(word_to_idx[word])
-                except KeyError:
-                    seq.append(word_to_idx['<UNK>'])
-            
-            encoded.append(seq)
-        
-        return encoded
-
-    def _pad_sequence(self, text, max_len):
-        features = np.zeros((len(text), max_len), dtype=int)
-        for i, sent in enumerate(text):
-            if len(sent) != 0:
-                features[i, :len(sent)] = np.array(sent)[:max_len]
-        return features
+        train_dataset, val_dataset = random_split(self, [train_size, val_size])
+        return train_dataset, val_dataset
 
 if __name__ == '__main__':
-    data_path = '../../datasets/'
-    train_dataset = IMDBDataset(data_path, mode='train')
+    data_path = '../../datasets/IMDB/'
+    dataset = IMDBDataset(data_path)
+    train_dataset, _ = dataset.split_dataset(ratio=0.2)
+    
     text, label = train_dataset[0]
     print(f"text shape: {text.shape}")
     

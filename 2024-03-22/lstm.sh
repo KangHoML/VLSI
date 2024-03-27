@@ -1,6 +1,6 @@
 torchrun --nproc_per_node 4 train.py --is_ddp True \
                                      --is_amp False \
-                                     --model 'gru' \
+                                     --model 'lstm' \
                                      --hidden_size 256 \
                                      --embed_size 256 \
                                      --n_layers 1 \
@@ -9,10 +9,10 @@ torchrun --nproc_per_node 4 train.py --is_ddp True \
                                      --batch_size 64 \
                                      --learning_rate 1e-2 \
                                      --epoch 10 \
-                                     --save "gru_ddp" \
-                                     > ./result/gru.txt
+                                     --save "lstm_ddp" \
+                                     > ./result/lstm.txt
 
-python3 train.py --model 'gru' \
+python3 train.py --model 'lstm' \
                  --hidden_size 256 \
                  --embed_size 256 \
                  --n_layers 1 \
@@ -21,5 +21,5 @@ python3 train.py --model 'gru' \
                  --batch_size 64 \
                  --learning_rate 1e-2 \
                  --epoch 10 \
-                 --save "gru" \
-                 > ./result/gru.txt
+                 --save "lstm" \
+                 > ./result/lstm.txt

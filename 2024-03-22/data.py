@@ -7,11 +7,15 @@ from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 
 class IMDBDataset(Dataset):
-    def __init__(self, root):
+    def __init__(self, root, train=True):
         super().__init__()
         
         # setting
-        self.root = os.path.join(root, "train.csv")
+        self.train = train
+        if self.train:
+            self.root = os.path.join(root, "train.csv")
+        else:
+            self.root = os.path.join(root, "test.csv")
         self.data = pd.read_csv(self.root) # data load
         self.tokenizer = get_tokenizer('basic_english') # tokenizer 정의
         
@@ -36,7 +40,10 @@ class IMDBDataset(Dataset):
     
     def __getitem__(self, idx):
         text = torch.tensor(self.text_data[idx], dtype=torch.long)
-        label = self.label_data[idx]
+        if self.train:
+            label = self.label_data[idx]
+        else:
+            label = None
 
         return text, label
 

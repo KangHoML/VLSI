@@ -14,6 +14,7 @@ class SentenceClassifier(nn.Module):
         
         self.hidden_size = hidden_size
         self.n_layers = n_layers
+        self.model_type = model_type
         
         self.embedding = nn.Embedding(n_vocab, embed_size, padding_idx=0)
 
@@ -48,7 +49,15 @@ class SentenceClassifier(nn.Module):
     
     def _init_state(self, batch_size=1):
         weight = next(self.parameters()).data
-        return weight.new(self.n_layers, batch_size, self.hidden_size).zero_()
+        num_directions = 2 if self.bidirectional else 1
+
+        h_0 = weight.new(self.n_layers * num_directions, batch_size, self.hidden_size).zero_()
+        c_0 = weight.new(self.n_layers * num_directions, batch_size, self.hidden_size).zero_()
+
+        if self.model_type == 'lstm':
+            return (h_0, c_0)
+        else:
+            return h_0
 
 if __name__ == "__main__":
     src_vocab_size = 40710

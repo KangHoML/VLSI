@@ -14,6 +14,7 @@ class SentenceClassifier(nn.Module):
         
         self.hidden_size = hidden_size
         self.n_layers = n_layers
+        self.bidirectional = bidirectional
         self.model_type = model_type
         
         self.embedding = nn.Embedding(n_vocab, embed_size, padding_idx=0)

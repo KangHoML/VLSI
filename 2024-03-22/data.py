@@ -3,11 +3,10 @@ import torch
 import pandas as pd
 
 from torch.utils.data import Dataset, random_split
-from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 
 class IMDBDataset(Dataset):
-    def __init__(self, root, train=True):
+    def __init__(self, root, tokenizer, train=True):
         super().__init__()
         
         # setting
@@ -17,7 +16,7 @@ class IMDBDataset(Dataset):
         else:
             self.root = os.path.join(root, "test.csv")
         self.data = pd.read_csv(self.root) # data load
-        self.tokenizer = get_tokenizer('basic_english') # tokenizer 정의
+        self.tokenizer = tokenizer
         
         # text 데이터
         raw_text = self.data['text']

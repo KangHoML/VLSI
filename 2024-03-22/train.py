@@ -1,4 +1,5 @@
 import os
+import nltk
 import torch
 import argparse
 import matplotlib.pyplot as plt
@@ -6,7 +7,11 @@ import torch.distributed as dist
 
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
+
+from torchtext.data.utils import get_tokenizer
+from nltk import word_tokenize
 from torch.nn.utils.rnn import pad_sequence
+
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD, Adam
 from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR
@@ -18,6 +23,7 @@ from net import SentenceClassifier
 parser = argparse.ArgumentParser()
 # -- hyperparameter about data
 parser.add_argument("--data_path", type=str, default="../../datasets/IMDB/")
+parser.add_argument("--tokenzier", type=str, default='torchtext')
 parser.add_argument("--ratio", type=float, default=0.2)
 
 # -- hyperparameter about ddp &amp
@@ -64,6 +70,14 @@ def collate_fn(batch):
     label = torch.tensor(label, dtype=torch.long)
     return padded_text, label
 
+# tokenizer type 설정
+def tokenizer_type():
+    if args.tokenizer == 'torchtext':
+        return get_tokenizer('basic_english') # tokenizer 정의
+    if args.tokenizer == 'nltk':
+        nltk.download('punkt')
+        return word_tokenize
+
 # optimizer type 설정
 def get_optimizer():
     if args.optimizer == 'SGD':
@@ -86,7 +100,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # IMDBDataset
-    dataset = IMDBDataset(args.data_path)
+    dataset = IMDBDataset(args.data_path, tokenizer=tokenizer_type())
     train_dataset, val_dataset  = dataset.split_dataset(ratio=args.ratio)
     vocab_size = len(dataset.vocab)
     

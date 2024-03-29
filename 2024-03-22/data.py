@@ -40,11 +40,8 @@ class IMDBDataset(Dataset):
     
     def __getitem__(self, idx):
         text = torch.tensor(self.text_data[idx], dtype=torch.long)
-        if self.train:
-            label = self.label_data[idx]
-        else:
-            label = None
-
+        label = self.label_data[idx]
+        
         return text, label
 
     # tokenizer를 활용하여 text tokenize

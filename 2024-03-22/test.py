@@ -1,6 +1,8 @@
 import os
 import torch
 import argparse
+
+from collections import OrderedDict
 from torch.utils.data import DataLoader
 
 from data import IMDBDataset
@@ -10,7 +12,8 @@ from train import collate_fn
 parser = argparse.ArgumentParser()
 # -- path setting
 parser.add_argument("--data_path", type=str, default="../../datasets/IMDB/")
-parser.add_argument("--model_path", type=str, default="./results/gru.pth")
+parser.add_argument("--weight_path", type=str, default="../../pth/IMDB/")
+parser.add_argument("--pth_name", type=str, default="lstm_ddp")
 
 # -- model setting
 parser.add_argument("--model", type=str, default='gru')
@@ -20,16 +23,26 @@ parser.add_argument("--n_layers", type=int, default=1)
 parser.add_argument("--dropout", type=float, default=0.0)
 parser.add_argument("--bidirectional", type=bool, default=False)
 
+# -- batch_size
+parser.add_argument("--batch_size", type=int, default=32)
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     test_dataset = IMDBDataset(root=args.data_path, train=False)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn)
 
-    vocab_size = len(test_dataset.vocab)
+    weight_path = os.path.join(args.weight_path, args.pth_name + '.pth')
+    state_dict = torch.load(weight_path, map_location=device)
+    vocab_size = state_dict['embedding.weight'].size()[0]
     net = SentenceClassifier(vocab_size, hidden_size=args.hidden_size, embed_size=args.embed_size, n_layers=args.n_layers, 
                              dropout=args.dropout, bidirectional=args.bidirectional, model_type=args.model).to(device)
-    net.load_state_dict(torch.load(args.model_path))
+
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        name = k[7:] if k.startswith('module.') else k  # remove 'module.'
+        new_state_dict[name] = v
+
+    net.load_state_dict(new_state_dict)
     net = net.to(device)
 
     net.eval()
@@ -44,7 +57,7 @@ def main():
             correct += (predicted == labels).sum().item()
     
     accuracy = 100 * correct / total
-    print(f'Test Accuracy: {accuracy:.2f}%')
+    print(f'{args.pth_name} Test Accuracy: {accuracy:.2f}%')
 
 if __name__ == '__main__':
     global args

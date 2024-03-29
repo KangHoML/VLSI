@@ -22,4 +22,4 @@ python3 train.py --model 'gru' \
                  --learning_rate 1e-2 \
                  --epoch 10 \
                  --save "gru" \
-                 > ./result/gru.txt
+                 >> ./result/gru.txt

@@ -58,3 +58,5 @@ Epoch [9/10]
 Epoch [10/10]
   Train Loss: 0.0380, Train Accuracy: 99.16%
   Val Loss: 0.6906, Val Accuracy: 81.98%
+lstm_ddp Test Accuracy: 53.27%
+lstm Test Accuracy: 48.81%

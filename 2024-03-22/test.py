@@ -7,13 +7,17 @@ from torch.utils.data import DataLoader
 
 from data import IMDBDataset
 from net import SentenceClassifier  # 이미 정의된 모델 클래스 사용
-from train import collate_fn
+from train import collate_fn, tokenizer_type
 
 parser = argparse.ArgumentParser()
 # -- path setting
 parser.add_argument("--data_path", type=str, default="../../datasets/IMDB/")
 parser.add_argument("--weight_path", type=str, default="../../pth/IMDB/")
 parser.add_argument("--pth_name", type=str, default="lstm_ddp")
+
+# -- data setting
+parser.add_argument("--tokenizer", type=str, default='torchtext')
+parser.add_argument("--vocab_size", type=int, default=40000)
 
 # -- model setting
 parser.add_argument("--model", type=str, default='gru')
@@ -28,7 +32,7 @@ parser.add_argument("--batch_size", type=int, default=32)
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    test_dataset = IMDBDataset(root=args.data_path, train=False)
+    test_dataset = IMDBDataset(root=args.data_path, train=False, tokenizer=tokenizer_type(), vocab_size=args.vocab_size)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn)
 
     weight_path = os.path.join(args.weight_path, args.pth_name + '.pth')

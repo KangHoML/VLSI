@@ -2,20 +2,23 @@ import os
 import torch
 import pandas as pd
 
+from collections import Counter
+from torchtext.data.utils import get_tokenizer
 from torch.utils.data import Dataset, random_split
 from torchtext.vocab import build_vocab_from_iterator
 
+
 class IMDBDataset(Dataset):
-    def __init__(self, root, tokenizer, train=True):
+    def __init__(self, root, tokenizer, vocab_size, train=True):
         super().__init__()
         
         # setting
-        self.train = train
-        if self.train:
+        if train:
             self.root = os.path.join(root, "train.csv")
         else:
             self.root = os.path.join(root, "test.csv")
         self.data = pd.read_csv(self.root) # data load
+        self.vocab_size = vocab_size
         self.tokenizer = tokenizer
         
         # text 데이터
@@ -50,7 +53,12 @@ class IMDBDataset(Dataset):
 
     # tokenized된 text를 통해 vocab 생성
     def _build_vocab(self, raw_text):
-        vocab = build_vocab_from_iterator(self._yield_tokens(raw_text), specials=["<pad>", "<unk>"])
+        counter = Counter()
+        for tokens in self._yield_tokens(raw_text):
+            counter.update(tokens)
+        
+        tokens_for_vocab = counter.most_common(self.vocab_size)
+        vocab = build_vocab_from_iterator(dict(tokens_for_vocab), specials=["<pad>", "<unk>"])
         vocab.set_default_index(vocab["<pad>"])
         vocab.set_default_index(vocab["<unk>"])
         return vocab
@@ -66,7 +74,8 @@ class IMDBDataset(Dataset):
 
 if __name__ == '__main__':
     data_path = '../../datasets/IMDB/'
-    dataset = IMDBDataset(data_path)
+    tokenizer = get_tokenizer('basic_english')
+    dataset = IMDBDataset(data_path, tokenizer=tokenizer, vocab_size=40000)
     train_dataset, _ = dataset.split_dataset(ratio=0.2)
     
     text, label = train_dataset[0]

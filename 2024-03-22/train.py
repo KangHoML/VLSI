@@ -23,7 +23,8 @@ from net import SentenceClassifier
 parser = argparse.ArgumentParser()
 # -- hyperparameter about data
 parser.add_argument("--data_path", type=str, default="../../datasets/IMDB/")
-parser.add_argument("--tokenzier", type=str, default='torchtext')
+parser.add_argument("--tokenizer", type=str, default='nltk')
+parser.add_argument("--vocab_size", type=int, default=40000)
 parser.add_argument("--ratio", type=float, default=0.2)
 
 # -- hyperparameter about ddp &amp
@@ -100,7 +101,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # IMDBDataset
-    dataset = IMDBDataset(args.data_path, tokenizer=tokenizer_type())
+    dataset = IMDBDataset(args.data_path, tokenizer=tokenizer_type(), vocab_size=args.vocab_size)
     train_dataset, val_dataset  = dataset.split_dataset(ratio=args.ratio)
     vocab_size = len(dataset.vocab)
     

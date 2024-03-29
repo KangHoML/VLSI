@@ -1,5 +1,7 @@
 torchrun --nproc_per_node 4 train.py --is_ddp True \
                                      --is_amp False \
+                                     --tokenizer "nltk" \
+                                     --vocab_size 40000 \
                                      --model 'gru' \
                                      --hidden_size 512 \
                                      --embed_size 256 \
@@ -12,7 +14,9 @@ torchrun --nproc_per_node 4 train.py --is_ddp True \
                                      --save "gru_ddp" \
                                      > ./result/gru.txt
 
-python3 train.py --model 'gru' \
+python3 train.py --tokenizer "nltk" \
+                 --vocab_size 40000 \
+                 --model 'gru' \
                  --hidden_size 512 \
                  --embed_size 256 \
                  --n_layers 1 \

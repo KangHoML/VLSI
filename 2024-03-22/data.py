@@ -1,5 +1,6 @@
 import os
 import torch
+import numpy as np
 import pandas as pd
 
 from collections import Counter
@@ -7,9 +8,8 @@ from torchtext.data.utils import get_tokenizer
 from torch.utils.data import Dataset, random_split
 from torchtext.vocab import build_vocab_from_iterator
 
-
 class IMDBDataset(Dataset):
-    def __init__(self, root, tokenizer, vocab_size, train=True):
+    def __init__(self, root, tokenizer, vocab_size, max_len, train=True):
         super().__init__()
         
         # setting
@@ -31,6 +31,8 @@ class IMDBDataset(Dataset):
             tokenized_sent = self.tokenizer(sent) # 문장을 tokenize
             encoded_sent = self.vocab(tokenized_sent) # vocab을 통해 encoding된 리스트 반환
             text_data.append(encoded_sent)
+        text_data = self._pad_sequence(text_data, max_len)
+        
         self.text_data = text_data
         
         # label 데이터
@@ -63,6 +65,16 @@ class IMDBDataset(Dataset):
         vocab.set_default_index(vocab["<unk>"])
         return vocab
 
+    def _pad_sequence(self, text, max_len):
+        if max_len is None:
+            max_len = max([len(sent) for sent in text])
+        
+        features = np.zeros((len(text), max_len), dtype=int)
+        for i, sent in enumerate(text):
+            if len(sent) != 0:
+                features[i, :len(sent)] = np.array(sent)[:max_len]
+        return features
+    
     # train과 validation 데이터셋을 ratio만큼 분할 (8:2)
     def split_dataset(self, ratio=0.2):
         data_size = len(self)

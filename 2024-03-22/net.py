@@ -36,7 +36,7 @@ class SentenceClassifier(nn.Module):
         
         self.dropout = nn.Dropout(dropout)
 
-        self._init_weights()
+        # self._init_weights()
 
     def forward(self, x):
         embedded = self.embedding(x)

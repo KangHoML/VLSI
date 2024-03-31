@@ -12,7 +12,7 @@ from torchtext.data.utils import get_tokenizer
 from nltk import word_tokenize
 
 from torch.nn import CrossEntropyLoss
-from torch.optim import SGD, Adam, RMSprop
+from torch.optim import SGD, AdamW, RMSprop
 from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR
 from tqdm import tqdm
 
@@ -76,8 +76,8 @@ def tokenizer_type():
 def get_optimizer():
     if args.optimizer == 'SGD':
         return SGD
-    elif args.optimizer == 'Adam':
-        return Adam
+    elif args.optimizer == 'AdamW':
+        return AdamW
     elif args.optimizer == 'RMSprop':
         return RMSprop
     else:

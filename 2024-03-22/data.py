@@ -1,3 +1,4 @@
+import re
 import os
 import torch
 import numpy as np
@@ -28,6 +29,7 @@ class IMDBDataset(Dataset):
         # text 데이터 전처리
         text_data = []
         for sent in raw_text:
+            sent = self._preprocess_sent(sent)
             tokenized_sent = self.tokenizer(sent) # 문장을 tokenize
             encoded_sent = self.vocab(tokenized_sent) # vocab을 통해 encoding된 리스트 반환
             text_data.append(encoded_sent)
@@ -47,6 +49,18 @@ class IMDBDataset(Dataset):
         label = self.label_data[idx]
         
         return text, label
+    
+    def _preprocess_sent(self, sent):
+        # add space between word and punctuation
+        sent = re.sub(r"([?.!,¿])", r" \1", sent)
+
+        # convert characters to space except (a-z, A-Z, ".", "?", "!", ",")
+        sent = re.sub(r"[^a-zA-Z!.?]+", r" ", sent)
+
+        # compress the space more than 2
+        sent = re.sub(r"\s+", " ", sent)
+
+        return sent
 
     # tokenizer를 활용하여 text tokenize
     def _yield_tokens(self, raw_text):

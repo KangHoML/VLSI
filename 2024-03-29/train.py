@@ -1,5 +1,4 @@
 import os
-import nltk
 import torch
 import argparse
 import matplotlib.pyplot as plt
@@ -21,27 +20,26 @@ from net import SentenceClassifier
 
 parser = argparse.ArgumentParser()
 # -- hyperparameter about data
-parser.add_argument("--data_path", type=str, default="../../datasets/IMDB/")
-parser.add_argument("--tokenizer", type=str, default='nltk')
-parser.add_argument("--vocab_size", type=int, default=10000)
-parser.add_argument("--max_len", type=int, default=500)
-parser.add_argument("--ratio", type=float, default=0.2)
+parser.add_argument("--tokenizer", type=str, default='okt')
+parser.add_argument("--vocab_size", type=int, default=5000)
+parser.add_argument("--max_len", type=int, default=32)
+parser.add_argument("--ratio", type=float, default=0.1)
 
 # -- hyperparameter about ddp &amp
 parser.add_argument("--is_ddp", type=bool, default=False)
 parser.add_argument("--is_amp", type=bool, default=False)
 
 # -- hyperparameter about train
-parser.add_argument("--optimizer", type=str, default='Adam')
+parser.add_argument("--optimizer", type=str, default='RMSprop')
 parser.add_argument("--lr_scheduler", type=str, default='Step')
 parser.add_argument("--step_size", type=int, default=1)
-parser.add_argument("--gamma", type=float, default=0.1)
-parser.add_argument("--batch_size", type=int, default=32)
+parser.add_argument("--gamma", type=float, default=1.0)
+parser.add_argument("--batch_size", type=int, default=16)
 parser.add_argument("--learning_rate", type=float, default=1e-3)
 parser.add_argument("--epoch", type=int, default=10)
 
 # -- hyperparamter for saving model
-parser.add_argument("--save", type=str, default="rnn_1")
+parser.add_argument("--save", type=str, default="okt")
 
 def plot_loss(train_losses, val_losses):
     plt.figure(figsize=(10, 5))
@@ -57,11 +55,11 @@ def plot_loss(train_losses, val_losses):
     plt.savefig(f'./result/{title}.png')
 
 # tokenizer type 설정
-def tokenizer_type():
-    if args.tokenizer == 'spm':
-        return T5Tokenizer
-    if args.tokenizer == 'okt':
-        return Okt
+def tokenizer_type(tokenizer):
+    if tokenizer == 'spm':
+        pass
+    if tokenizer == 'okt':
+        return Okt()
 
 # optimizer type 설정
 def get_optimizer():
@@ -87,8 +85,8 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # NSMCDataset
-    dataset = NSMCDataset(args.data_path, tokenizer=tokenizer_type(), vocab_size=args.vocab_size, max_len=args.max_len)
-    train_dataset, val_dataset  = dataset.split_dataset(ratio=args.ratio)
+    dataset = NSMCDataset(tokenizer=tokenizer_type(args.tokenizer), n_vocab=args.vocab_size, max_len=args.max_len)
+    train_dataset, val_dataset = dataset.split_dataset(ratio=args.ratio)
     vocab_size = len(dataset.vocab)
     
     # set the ddp
@@ -109,7 +107,7 @@ def main():
                                           shuffle=False, num_workers=4, pin_memory=True)
 
     # define the model instance
-    net = SentenceClassifier(vocab_size, hidden_size=128, embed_size=128, n_layers=2).to(device)
+    net = SentenceClassifier(vocab_size, hidden_size=128, embed_size=100, n_layers=2).to(device)
     if args.is_ddp:
         net = DistributedDataParallel(net)
     
@@ -149,7 +147,7 @@ def main():
 
         for inputs, labels in tqdm(train_loader):
             inputs = inputs.to(device)
-            labels = labels.to(device)
+            labels = labels.to(device).unsqueeze(1)
             optimizer.zero_grad()
 
             if scaler is not None:
@@ -167,7 +165,7 @@ def main():
                 loss.backward()
                 optimizer.step()
             
-            _, predicted = torch.max(outputs.data, 1)
+            predicted = torch.sigmoid(outputs) > .5
             train_total += labels.size(0)
             train_correct += (predicted == labels).sum().item()
 
@@ -188,12 +186,12 @@ def main():
         with torch.no_grad():
             for inputs, labels in tqdm(val_loader):
                 inputs = inputs.to(device)
-                labels = labels.to(device)
+                labels = labels.to(device).unsqueeze(1)
 
                 outputs = net(inputs)
                 loss = criterion(outputs, labels)
 
-                _, predicted = torch.max(outputs.data, 1)
+                predicted = torch.sigmoid(outputs) > .5
                 val_total += labels.size(0)
                 val_correct += (predicted == labels).sum().item()
 

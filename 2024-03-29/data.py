@@ -19,10 +19,10 @@ class NSMCDataset(Dataset):
 
         if train:
             raw_data = raw_data["train"]
-            tokenized_file = f'train_tokenized_{tokenizer.__class__.__name__}.pk1'
+            tokenized_file = f'./pkl/train_tokenized_{tokenizer.__class__.__name__}.pk1'
         else:
             raw_data = raw_data["test"]
-            tokenized_file = f'test_tokenized_{tokenizer.__class__.__name__}.pk1'
+            tokenized_file = f'./pkl/test_tokenized_{tokenizer.__class__.__name__}.pk1'
 
         # 기존 데이터
         raw_text_data = raw_data["document"]
@@ -58,7 +58,7 @@ class NSMCDataset(Dataset):
     
     def __getitem__(self, idx):
         text = torch.tensor(self.text_data[idx], dtype=torch.long)
-        label = torch.tensor(self.label_data[idx], dtype=torch.long)
+        label = torch.tensor(self.label_data[idx], dtype=torch.float32)
 
         return text, label
 

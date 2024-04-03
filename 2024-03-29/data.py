@@ -15,14 +15,15 @@ class NSMCDataset(Dataset):
 
         # tokenizer 정의
         self.tokenizer = tokenizer
+        self.tokenizer_name = tokenizer.__class__.__name__
         raw_data = load_dataset("nsmc")
 
         if train:
             raw_data = raw_data["train"]
-            tokenized_file = f'./pkl/train_tokenized_{tokenizer.__class__.__name__}.pk1'
+            tokenized_file = f'./pkl/train_tokenized_{self.tokenizer_name}.pk1'
         else:
             raw_data = raw_data["test"]
-            tokenized_file = f'./pkl/test_tokenized_{tokenizer.__class__.__name__}.pk1'
+            tokenized_file = f'./pkl/test_tokenized_{self.tokenizer_name}.pk1'
 
         # 기존 데이터
         raw_text_data = raw_data["document"]
@@ -63,7 +64,10 @@ class NSMCDataset(Dataset):
         return text, label
 
     def _tokenize(self, texts):
-        tokenized_texts = [self.tokenizer.morphs(text) for text in tqdm(texts)]
+        if self.tokenizer_name == Okt:
+            tokenized_texts = [self.tokenizer.morphs(text) for text in tqdm(texts)]
+        else:
+            tokenized_texts = [self.tokenizer.tokenize(text) for text in tqdm(texts)]
         return tokenized_texts
     
     def _build_vocab(self, tokenized_texts, n_vocab, special_tokens):

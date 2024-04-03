@@ -57,7 +57,9 @@ def plot_loss(train_losses, val_losses):
 # tokenizer type 설정
 def tokenizer_type(tokenizer):
     if tokenizer == 'spm':
-        pass
+        tok = T5Tokenizer(vocab_file="./spm/t5-sp-bpe-nsmc-byte-fallback.model")
+        tok.save_pretrained("./spm/t5-tokenizer-bpe-nsmc-byte-fallback")
+        return tok
     if tokenizer == 'okt':
         return Okt()
 

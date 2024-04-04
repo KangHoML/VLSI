@@ -83,6 +83,78 @@ def get_scheduler():
     else:
         raise ValueError(args.lr_scheduler)
 
+# train code
+def train(net, train_loader, criterion, optimizer, scheduler, scaler, device):
+    train_loss = 0.0
+    train_correct = 0
+    train_total = 0
+
+    net.train()
+
+    for inputs, labels in tqdm(train_loader):
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        optimizer.zero_grad()
+
+        if scaler is not None:
+            with torch.cuda.amp.autocast():
+                outputs = net(inputs)
+                loss = criterion(outputs.logits, labels)
+
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            outputs = net(inputs)
+            loss = criterion(outputs.logits, labels)
+            
+            loss.backward()
+            optimizer.step()
+        
+        _, predicted = torch.max(outputs.logits, 1)
+        train_total += labels.size(0)
+        train_correct += (predicted == labels).sum().item()
+
+        train_loss += loss.item()
+    
+    scheduler.step()
+    
+    train_loss /= len(train_loader)
+    train_accuracy = 100 * train_correct / train_total
+
+    return train_loss, train_accuracy
+
+# evaluate code
+def eval(net, val_loader, criterion, device):
+    val_loss = 0.0
+    val_correct = 0
+    val_total = 0
+    
+    net.eval()
+
+    with torch.no_grad():
+        for inputs, labels in tqdm(val_loader):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            outputs = net(inputs)
+            if criterion is not None:
+                loss = criterion(outputs.logits, labels)
+
+            _, predicted = torch.max(outputs.logits, 1)
+            val_total += labels.size(0)
+            val_correct += (predicted == labels).sum().item()
+
+            if criterion is not None:
+                val_loss += loss.item()
+    
+    
+    val_loss /= len(val_loader)
+    
+    val_accuracy = 100 * val_correct / val_total
+
+    return val_loss, val_accuracy
+
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -141,66 +213,10 @@ def main():
         if args.is_ddp:
             train_sampler.set_epoch(epoch)
 
-        train_loss = 0.0
-        train_correct = 0
-        train_total = 0
-
-        net.train()
-
-        for inputs, labels in tqdm(train_loader):
-            inputs = inputs.to(device)
-            labels = labels.to(device).unsqueeze(1)
-            optimizer.zero_grad()
-
-            if scaler is not None:
-                with torch.cuda.amp.autocast():
-                    outputs = net(inputs)
-                    loss = criterion(outputs, labels)
-
-                scaler.scale(loss).backward()
-                scaler.step(optimizer)
-                scaler.update()
-            else:
-                outputs = net(inputs)
-                loss = criterion(outputs, labels)
-                
-                loss.backward()
-                optimizer.step()
-            
-            predicted = torch.sigmoid(outputs) > .5
-            train_total += labels.size(0)
-            train_correct += (predicted == labels).sum().item()
-
-            train_loss += loss.item()
-        
-        scheduler.step()
-        
-        train_loss /= len(train_loader)
-        train_accuracy = 100 * train_correct / train_total
+        train_loss, train_accuracy = train(net, train_loader, criterion, optimizer, scheduler, scaler, device)
         train_losses.append(train_loss)
 
-        val_loss = 0.0
-        val_correct = 0
-        val_total = 0
-        
-        net.eval()
-
-        with torch.no_grad():
-            for inputs, labels in tqdm(val_loader):
-                inputs = inputs.to(device)
-                labels = labels.to(device).unsqueeze(1)
-
-                outputs = net(inputs)
-                loss = criterion(outputs, labels)
-
-                predicted = torch.sigmoid(outputs) > .5
-                val_total += labels.size(0)
-                val_correct += (predicted == labels).sum().item()
-
-                val_loss += loss.item()
-
-        val_loss /= len(val_loader)
-        val_accuracy = 100 * val_correct / val_total
+        val_loss, val_accuracy = eval(net, val_loader, criterion, device)
         val_losses.append(val_loss)
 
         if rank == 0:

@@ -8,7 +8,7 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 
 from torch.nn import CrossEntropyLoss
-from torch.optim import SGD, Adam
+from torch.optim import SGD, Adam, AdamW
 from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR
 from tqdm import tqdm
 
@@ -58,6 +58,8 @@ def get_optimizer():
         return SGD
     elif args.optimizer == 'Adam':
         return Adam
+    elif args.optimizer == 'AdamW':
+        return AdamW
     else:
         raise ValueError(args.optimizer)
 

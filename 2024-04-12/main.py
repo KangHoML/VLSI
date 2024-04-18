@@ -9,11 +9,25 @@ from torch.utils.data import DataLoader, DistributedSampler
 
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD, Adam, AdamW
-from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR
+from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR, OneCycleLR
 from tqdm import tqdm
 
 from data import build_dataset
 from net import ConvNeXt_T
+
+def parse_cfgs(input_str):
+    if input_str is None:
+        return None
+    
+    items = input_str.split(',')
+    result = []
+    for item in items:
+        numbers = tuple(map(int, item.strip().split()))
+        if len(numbers) == 2:
+            result.append(numbers)
+        else:
+            raise argparse.ArgumentTypeError()
+    return result
 
 parser = argparse.ArgumentParser()
 # -- hyperparameter about data
@@ -25,6 +39,8 @@ parser.add_argument("--is_amp", type=bool, default=False)
 
 # -- hyperparameter about model
 parser.add_argument("--pretrained", type=bool, default=False)
+parser.add_argument("--patch_size", type=int, default=4)
+parser.add_argument("--cfgs", type=parse_cfgs, default=None)
 
 # -- hyperparameter about train
 parser.add_argument("--optimizer", type=str, default='SGD')
@@ -69,6 +85,8 @@ def get_scheduler():
         return StepLR
     elif args.lr_scheduler == "Cosine":
         return CosineAnnealingLR
+    elif args.lr_scheduler == "Cycle":
+        return OneCycleLR
     else:
         raise ValueError(args.lr_scheduler)
 
@@ -166,7 +184,7 @@ def main():
                                           shuffle=False, num_workers=4, pin_memory=True)
 
     # define the model instance
-    net = ConvNeXt_T(pretrained=args.pretrained).to(device)
+    net = ConvNeXt_T(patch_size=args.patch_size, cfgs=args.cfgs, pretrained=args.pretrained).to(device)
     if args.is_ddp:
         net = DistributedDataParallel(net)
     

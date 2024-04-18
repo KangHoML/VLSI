@@ -54,38 +54,42 @@ class ConvNeXt_T(nn.Module):
     # Configuration: (num_blocks, hidden_size)
     default_cfgs = [(3, 96), (3, 192), (9, 384), (3,768)] 
 
-    def __init__(self, in_channels=3, num_classes=100, cfgs=default_cfgs, pretrained=False):
+    def __init__(self, in_channels=3, num_classes=100, patch_size=4, cfgs=None, pretrained=False):
         super().__init__()
+        if cfgs == None:
+            self.cfgs = self.default_cfgs
+        else:
+            self.cfgs = cfgs
 
-        # stem
+        # stem 
         self.downsample = nn.ModuleList()
         stem = nn.Sequential(
-            nn.Conv2d(in_channels, cfgs[0][1], kernel_size=4, stride=4),
-            LayerNorm(cfgs[0][1], eps=1e-6, data_format="channel_first")
+            nn.Conv2d(in_channels, self.cfgs[0][1], kernel_size=patch_size, stride=patch_size),
+            LayerNorm(self.cfgs[0][1], eps=1e-6, data_format="channel_first")
         )
         self.downsample.append(stem)
 
         # down sample layer (stage 사이의 별도의 downsample layer)
         for i in range(3):
             downsample_layer = nn.Sequential(
-                    LayerNorm(cfgs[i][1], eps=1e-6, data_format="channel_first"),
-                    nn.Conv2d(cfgs[i][1], cfgs[i+1][1], kernel_size=2, stride=2),
+                    LayerNorm(self.cfgs[i][1], eps=1e-6, data_format="channel_first"),
+                    nn.Conv2d(self.cfgs[i][1], self.cfgs[i+1][1], kernel_size=2, stride=2),
             )
             self.downsample.append(downsample_layer)
 
         # 4개의 Feature Resolution Stage
         self.stage = nn.ModuleList()
-        for num_blk, hidden_size in cfgs:
+        for num_blk, hidden_size in self.cfgs:
             cn_blk = []
             for _ in range(num_blk):
                 cn_blk.append(CNBlock(in_channels=hidden_size))
             self.stage.append(nn.Sequential(*cn_blk))        
 
         # Global Average Pooling : (N, C, H, W) -> (N, C)
-        self.norm = nn.LayerNorm(cfgs[-1][1], eps=1e-6) 
+        self.norm = nn.LayerNorm(self.cfgs[-1][1], eps=1e-6) 
 
         # Classification
-        self.head = nn.Linear(cfgs[-1][1], num_classes)
+        self.head = nn.Linear(self.cfgs[-1][1], num_classes)
 
         # 가중치 초기화 및 pretrained 가져오기
         self.apply(self._init_weights)

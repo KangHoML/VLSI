@@ -28,6 +28,7 @@ parser.add_argument("--pretrained", type=bool, default=False)
 
 # -- hyperparameter about train
 parser.add_argument("--optimizer", type=str, default='SGD')
+parser.add_argument("--weight_decay", type=float, default=0.0)
 parser.add_argument("--lr_scheduler", type=str, default=None)
 parser.add_argument("--step_size", type=int, default=1)
 parser.add_argument("--gamma", type=float, default=1.0)
@@ -172,7 +173,7 @@ def main():
     
     # define the optimizer
     optimizer_type = get_optimizer()
-    optimizer = optimizer_type(net.parameters(), lr=args.learning_rate)
+    optimizer = optimizer_type(net.parameters(), weight_decay=args.weight_decay, lr=args.learning_rate)
 
     # define the schedular
     scheduler = None

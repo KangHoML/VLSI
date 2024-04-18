@@ -13,8 +13,10 @@ python3 main.py --pretrained False \
                 --optimizer 'Adam' \
                 --batch_size 64 \
                 --weight_decay 1e-3 \
-                --learning_rate 1e-3 \
-                --epoch 100 \
+                --learning_rate 1e-2 \
+                --lr_scheduler 'Step' \
+                --gamma 0.2 \
+                --epoch 50 \
                 --save 'ckpt_adam' \
                 >> './result/convnext.txt'
 

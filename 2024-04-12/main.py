@@ -79,14 +79,14 @@ def get_optimizer():
     else:
         raise ValueError(args.optimizer)
 
-# scheduler type 설정
-def get_scheduler():
+# scheduler 설정
+def get_scheduler(optimizer):
     if args.lr_scheduler == "Step":
-        return StepLR
+        return StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
     elif args.lr_scheduler == "Cosine":
-        return CosineAnnealingLR
+        return CosineAnnealingLR(optimizer, T_max=args.step_size)
     elif args.lr_scheduler == "Cycle":
-        return OneCycleLR
+        return OneCycleLR(optimizer, max_lr=args.learning_rate, steps_per_epoch=args.step_size, epochs=args.epoch)
     else:
         raise ValueError(args.lr_scheduler)
 
@@ -198,11 +198,7 @@ def main():
     # define the schedular
     scheduler = None
     if args.lr_scheduler is not None:
-        scheduler_type = get_scheduler()
-        try:
-            scheduler = scheduler_type(optimizer, step_size=args.step_size, gamma=args.gamma)
-        except:
-            scheduler = scheduler_type(optimizer, T_max=args.step_size)
+        scheduler = get_scheduler(optimizer)
 
     # define the scaler
     if args.is_amp:

@@ -13,7 +13,8 @@ from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR, OneCycleLR
 from tqdm import tqdm
 
 from data import build_dataset
-from net import ConvNeXt_T
+from convnext import ConvNeXt_T
+from vit import ViT
 
 def parse_cfgs(input_str):
     if input_str is None:
@@ -38,8 +39,10 @@ parser.add_argument("--is_ddp", type=bool, default=False)
 parser.add_argument("--is_amp", type=bool, default=False)
 
 # -- hyperparameter about model
-parser.add_argument("--pretrained", type=bool, default=False)
+parser.add_argument("--model", type=str, default="ViT")
+parser.add_argument("--embed_mode", type=str, default="patch")
 parser.add_argument("--patch_size", type=int, default=4)
+parser.add_argument("--pretrained", type=bool, default=False)
 parser.add_argument("--cfgs", type=parse_cfgs, default=None)
 
 # -- hyperparameter about train
@@ -68,6 +71,15 @@ def plot_loss(train_losses, val_losses):
     plt.grid()
     plt.savefig(f'./result/{title}.png')
 
+# model 설정
+def get_network():
+    if args.model == 'ViT':
+        ViT(patch_size=args.patch_size, embed_mode=args.embed_mode)
+    elif args.model == 'ConvNext':
+        ConvNeXt_T(patch_size=args.patch_size, cfgs=args.cfgs, pretrained=args.pretrained)
+    else:
+        ValueError(args.model)
+
 # optimizer type 설정
 def get_optimizer():
     if args.optimizer == 'SGD':
@@ -80,13 +92,13 @@ def get_optimizer():
         raise ValueError(args.optimizer)
 
 # scheduler 설정
-def get_scheduler(optimizer):
+def get_scheduler(optimizer, loader_len):
     if args.lr_scheduler == "Step":
         return StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
     elif args.lr_scheduler == "Cosine":
         return CosineAnnealingLR(optimizer, T_max=args.step_size)
     elif args.lr_scheduler == "Cycle":
-        return OneCycleLR(optimizer, max_lr=args.learning_rate, steps_per_epoch=args.step_size, epochs=args.epoch)
+        return OneCycleLR(optimizer, max_lr=args.learning_rate, steps_per_epoch=loader_len, epochs=args.epoch)
     else:
         raise ValueError(args.lr_scheduler)
 
@@ -166,7 +178,7 @@ def main():
     # NSMCDataset
     train_dataset, val_dataset = build_dataset(root=args.data_path, train=True), build_dataset(root=args.data_path, train=False)
     
-    # set the ddp
+    # set the ddpl
     if args.is_ddp:
         dist.init_process_group("nccl")
         rank = dist.get_rank()
@@ -184,7 +196,7 @@ def main():
                                           shuffle=False, num_workers=4, pin_memory=True)
 
     # define the model instance
-    net = ConvNeXt_T(patch_size=args.patch_size, cfgs=args.cfgs, pretrained=args.pretrained).to(device)
+    net = get_network().to(device)
     if args.is_ddp:
         net = DistributedDataParallel(net)
     
@@ -198,7 +210,7 @@ def main():
     # define the schedular
     scheduler = None
     if args.lr_scheduler is not None:
-        scheduler = get_scheduler(optimizer)
+        scheduler = get_scheduler(optimizer, len(train_loader))
 
     # define the scaler
     if args.is_amp:

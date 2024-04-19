@@ -2,6 +2,37 @@ import torch
 import torch.nn as nn
 from timm.models.layers import trunc_normal_
 
+import torch
+import torch.nn as nn
+
+class FixedEmbedding(nn.Module):
+    def __init__(self, img_size, patch_size, in_chans, embed_dim):
+        super(FixedEmbedding, self).__init__()
+        self.num_patches = (img_size // patch_size) ** 2
+        self.embed_dim = embed_dim
+        # Conv2d를 사용하여 이미지를 패치로 변환하고 임베딩 차원으로 매핑합니다.
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
+        # 위치 인코딩 초기화: 각 패치에 고정된 위치 인코딩을 할당합니다.
+        self.position_embeddings = nn.Parameter(self.create_positional_embeddings(self.num_patches, embed_dim), requires_grad=False)
+
+    def create_positional_embeddings(self, num_patches, embed_dim):
+        # 위치 인코딩 계산: 패치 인덱스에 따른 사인, 코사인 함수 적용
+        position = torch.arange(0, num_patches, dtype=torch.float).unsqueeze(1)
+        div_term = torch.pow(10000, torch.arange(0, embed_dim, 2).float() / embed_dim)
+        pe = torch.zeros(num_patches, embed_dim)
+        pe[:, 0::2] = torch.sin(position / div_term)
+        pe[:, 1::2] = torch.cos(position / div_term)
+        return pe
+
+    def forward(self, x):
+        # 패치 추출 및 위치 인코딩 적용
+        x = self.proj(x)  # [B, E, H', W']
+        x = x.flatten(2)  # [B, E, N]
+        x = x.transpose(1, 2)  # [B, N, E]
+        x = x + self.position_embeddings  # Add fixed positional embeddings
+        return x
+
+
 class PatchEmbedding(nn.Module):
     def __init__(self, img_size, patch_size, in_chans=3, embed_dim=768):
         super().__init__()
@@ -56,9 +87,13 @@ class LearnableEmbedding(nn.Module):
     
 if __name__ == '__main__':
     img = torch.randn(1, 3, 224, 224)
+    fixed_embedding = FixedEmbedding(in_chans=3, embed_dim=786, img_size=224, patch_size=16)
+    fixed_embedded = fixed_embedding(img)
+
     patch_embedding = PatchEmbedding(in_chans=3, embed_dim=786, img_size=224, patch_size=16)
     patch_emdedded = patch_embedding(img)
 
     learn_embedding = LearnableEmbedding(in_chans=3, embed_dim=786, img_size=224, patch_size=16)
     learn_emdedded = learn_embedding(img)
-    print(f'patch: {patch_emdedded.size()}, learnable: {learn_emdedded.size()}')
+    
+    print(f'fixed: {fixed_embedded.size()}, patch: {patch_emdedded.size()}, learnable: {learn_emdedded.size()}')

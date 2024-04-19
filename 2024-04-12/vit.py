@@ -1,5 +1,5 @@
 import torch.nn as nn
-from embed import PatchEmbedding, LearnableEmbedding
+from embed import PatchEmbedding, LearnableEmbedding, FixedEmbedding
 
 class MSA(nn.Module):
     def __init__(self, dim=192, num_heads=12, qkv_bias=False, attn_drop=0., proj_drop=0.):
@@ -51,7 +51,6 @@ class MLP(nn.Module):
 
 
 class Block(nn.Module):
-
     def __init__(self, dim, num_heads, mlp_ratio=4., qkv_bias=False,
                  drop=0., attn_drop=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm,
                  ):
@@ -73,12 +72,13 @@ class ViT(nn.Module):
         super().__init__()
         self.num_classes = num_classes
         self.num_features = self.embed_dim = embed_dim  # num_features for consistency with other models
+        
         norm_layer = nn.LayerNorm
         act_layer = nn.GELU
-        if (embed_mode == "patch"):
-            self.patch_embed = PatchEmbedding(img_size, patch_size, in_chans, embed_dim)
-        elif(embed_mode == "learnable"):
-            self.patch_embed = LearnableEmbedding(img_size, patch_size, in_chans, embed_dim)
+        
+        self.embed_mode = embed_mode
+        self.patch_embed = self._embed()((img_size, patch_size, in_chans, embed_dim))
+
         self.blocks = nn.Sequential(*[
             Block(
                 dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, drop=drop_rate,
@@ -90,6 +90,14 @@ class ViT(nn.Module):
 
         # Classifier head(s)
         self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
+
+    def _embed(self):
+        if self.embed_mode == "patch":
+            return PatchEmbedding
+        elif self.embed_mode == "learnable":
+            return LearnableEmbedding
+        elif self.embed_mode == "fixed":
+            return FixedEmbedding
 
     def forward(self, x):
         x = self.patch_embed(x)

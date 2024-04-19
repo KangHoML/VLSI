@@ -49,7 +49,7 @@ parser.add_argument("--cfgs", type=parse_cfgs, default=None)
 parser.add_argument("--optimizer", type=str, default='SGD')
 parser.add_argument("--weight_decay", type=float, default=0.0)
 parser.add_argument("--lr_scheduler", type=str, default=None)
-parser.add_argument("--step_size", type=int, default=1)
+parser.add_argument("--step_size", type=int, default=0)
 parser.add_argument("--gamma", type=float, default=1.0)
 parser.add_argument("--batch_size", type=int, default=16)
 parser.add_argument("--learning_rate", type=float, default=1e-3)
@@ -74,11 +74,11 @@ def plot_loss(train_losses, val_losses):
 # model 설정
 def get_network():
     if args.model == 'ViT':
-        ViT(patch_size=args.patch_size, embed_mode=args.embed_mode)
+        return ViT(patch_size=args.patch_size, embed_mode=args.embed_mode)
     elif args.model == 'ConvNext':
-        ConvNeXt_T(patch_size=args.patch_size, cfgs=args.cfgs, pretrained=args.pretrained)
+        return ConvNeXt_T(patch_size=args.patch_size, cfgs=args.cfgs, pretrained=args.pretrained)
     else:
-        ValueError(args.model)
+        return ValueError(args.model)
 
 # optimizer type 설정
 def get_optimizer():
@@ -98,7 +98,8 @@ def get_scheduler(optimizer, loader_len):
     elif args.lr_scheduler == "Cosine":
         return CosineAnnealingLR(optimizer, T_max=args.step_size)
     elif args.lr_scheduler == "Cycle":
-        return OneCycleLR(optimizer, max_lr=args.learning_rate, steps_per_epoch=loader_len, epochs=args.epoch)
+        return OneCycleLR(optimizer, max_lr=args.learning_rate,
+                          steps_per_epoch = loader_len if (args.step_size == 0) else args.step_size, epochs=args.epoch)
     else:
         raise ValueError(args.lr_scheduler)
 

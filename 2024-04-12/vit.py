@@ -77,7 +77,7 @@ class ViT(nn.Module):
         act_layer = nn.GELU
         
         self.embed_mode = embed_mode
-        self.patch_embed = self._embed()((img_size, patch_size, in_chans, embed_dim))
+        self.patch_embed = self._embed()(img_size, patch_size, in_chans, embed_dim)
 
         self.blocks = nn.Sequential(*[
             Block(

@@ -5,15 +5,13 @@
 #                  --save "resnet_ae" \
 #                  > "./result/loss.txt"
 
-# python3 test.py --sample 5 \
+# python3 plot.py --sample 5 \
 #                 --load "resnet_ae"
 
 # Clustering
-python3 cluster.py --cluster "KMeans" \
+# python3 cluster.py --cluster "KMeans" \
+#                    --load "resnet_ae"
+
+python3 cluster.py --cluster "Hierarchical" \
                    --load "resnet_ae"
 
-python3 cluster.py --cluster "MeanShift" \
-                   --load "resnet_ae"
-
-python3 cluster.py --cluster "DBSCAN" \
-                   --load "resnet_ae"

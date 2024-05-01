@@ -31,7 +31,6 @@ def plot_img(ori, pre):
     plt.savefig(f'./result/{args.load}_img.png')
     plt.close()
 
-
 def test():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     

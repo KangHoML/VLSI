@@ -10,7 +10,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="../../datasets/OxfordPet/")
 parser.add_argument("--sample", type=int, default=5)
 parser.add_argument("--batch_size", type=int, default=16)
-parser.add_argument("--epoch", type=int, default=10)
 parser.add_argument("--load", type=str, default="ckpt1.pth")
 
 def plot_img(ori, pre):

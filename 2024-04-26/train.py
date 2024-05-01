@@ -7,7 +7,7 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 
-from torch.nn import CrossEntropyLoss
+from torch.nn import MSELoss
 from torch.optim import Adam
 from tqdm import tqdm
 
@@ -118,8 +118,8 @@ def main():
     if args.is_ddp:
         net = DistributedDataParallel(net)
     
-    # define the CrossEntropyLoss
-    criterion = CrossEntropyLoss()
+    # define the loss function
+    criterion = MSELoss()
     
     # define the optimizer
     optimizer = Adam(net.parameters(), lr=args.learning_rate)

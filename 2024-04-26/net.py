@@ -46,15 +46,15 @@ class Encoder(nn.Module):
     def __init__(self):
         super().__init__()
         
-        self.cfgs = [(2, 32), (2, 64), (2, 128)]
+        self.cfgs = [(2, 16), (2, 32), (2, 64)]
         self.conv = nn.Sequential(
-            nn.Conv2d(3, 32, 3, 1, 1),
-            nn.BatchNorm2d(32),
+            nn.Conv2d(3, 16, 3, 1, 1),
+            nn.BatchNorm2d(16),
             nn.ReLU()
         )
 
         res_blk = []
-        in_channels = 32
+        in_channels = 16
         for (num_blk, out_channels) in self.cfgs:
             res_blk.append(BasicBlock(in_channels, out_channels, stride=2, mode="encode"))
             
@@ -74,10 +74,10 @@ class Decoder(nn.Module):
     def __init__(self):
         super().__init__()
         
-        self.cfgs = [(2, 128), (2, 64), (2, 32)]
+        self.cfgs = [(2, 64), (2, 32), (2, 16)]
 
         res_blk = []
-        in_channels = 128
+        in_channels = 64
         for (num_blk, out_channels) in self.cfgs:
             res_blk.append(BasicBlock(in_channels, out_channels, stride=2, mode="decode"))
             
@@ -88,7 +88,7 @@ class Decoder(nn.Module):
         self.decode = nn.Sequential(*res_blk)
 
         self.de_conv = nn.Sequential(
-            nn.ConvTranspose2d(32, 3, 3, 1, 1),
+            nn.ConvTranspose2d(16, 3, 3, 1, 1),
             nn.Sigmoid()
         )
 

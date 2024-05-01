@@ -26,8 +26,18 @@ def get_cluster():
 
 def plot_cluster(embedded, labels):
     plt.figure(figsize=(12, 10))
+
+    unique_labels = np.unique(labels)
+    colors = plt.cm.viridis(np.linspace(0, 1, len(unique_labels)))
+
     scatter = plt.scatter(embedded[:, 0], embedded[:, 1], c=labels, cmap='viridis', s=5, alpha=0.5)
     plt.colorbar(scatter)
+    
+    # 범례 생성
+    legend_elements = [plt.Line2D([0], [0], marker='o', color='w', label=f'Cluster {label}', 
+                                  markerfacecolor=color, markersize=10) for label, color in zip(unique_labels, colors)]
+    plt.legend(handles=legend_elements)
+
     plt.title(f'Clustering by {args.cluster}')
     plt.savefig(f'{args.load}_cl.png')
 

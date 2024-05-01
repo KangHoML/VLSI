@@ -1,0 +1,40 @@
+Epoch [1/20]
+  Train Loss: 0.0213, Val Loss: 0.0090
+Epoch [2/20]
+  Train Loss: 0.0078, Val Loss: 0.0061
+Epoch [3/20]
+  Train Loss: 0.0064, Val Loss: 0.0045
+Epoch [4/20]
+  Train Loss: 0.0055, Val Loss: 0.0040
+Epoch [5/20]
+  Train Loss: 0.0048, Val Loss: 0.0037
+Epoch [6/20]
+  Train Loss: 0.0044, Val Loss: 0.0045
+Epoch [7/20]
+  Train Loss: 0.0042, Val Loss: 0.0030
+Epoch [8/20]
+  Train Loss: 0.0039, Val Loss: 0.0033
+Epoch [9/20]
+  Train Loss: 0.0038, Val Loss: 0.0027
+Epoch [10/20]
+  Train Loss: 0.0034, Val Loss: 0.0028
+Epoch [11/20]
+  Train Loss: 0.0033, Val Loss: 0.0025
+Epoch [12/20]
+  Train Loss: 0.0033, Val Loss: 0.0030
+Epoch [13/20]
+  Train Loss: 0.0033, Val Loss: 0.0023
+Epoch [14/20]
+  Train Loss: 0.0028, Val Loss: 0.0023
+Epoch [15/20]
+  Train Loss: 0.0028, Val Loss: 0.0021
+Epoch [16/20]
+  Train Loss: 0.0027, Val Loss: 0.0025
+Epoch [17/20]
+  Train Loss: 0.0027, Val Loss: 0.0020
+Epoch [18/20]
+  Train Loss: 0.0026, Val Loss: 0.0021
+Epoch [19/20]
+  Train Loss: 0.0024, Val Loss: 0.0020
+Epoch [20/20]
+  Train Loss: 0.0024, Val Loss: 0.0020

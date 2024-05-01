@@ -36,7 +36,7 @@ def test():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     _, val_dataset = build_dataset(root=args.data_path)
-    data_loader = DataLoader(val_dataset, batch_size=len(val_dataset), 
+    data_loader = DataLoader(val_dataset, batch_size=16, 
                                           shuffle=False, num_workers=4, pin_memory=True)
     
     net = AutoEncoder()

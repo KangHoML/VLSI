@@ -36,7 +36,7 @@ def cluster():
     
     train_dataset, val_dataset = build_dataset(root=args.data_path)
     dataset = train_dataset + val_dataset
-    data_loader = DataLoader(dataset, batch_size=len(dataset), 
+    data_loader = DataLoader(dataset, batch_size=16, 
                              shuffle=False, num_workers=4, pin_memory=True)
     
     net = AutoEncoder()
@@ -45,12 +45,14 @@ def cluster():
 
     # feature 추출
     net.eval()
+    features = []
     with torch.no_grad():
-        inputs, _ = next(iter(data_loader))
-        inputs = inputs.to(device)
-        latent, _ = net(inputs)
-        features = latent.view(latent.size(0), -1).cpu().numpy()
-
+        for inputs, _ in tqdm(data_loader):
+            inputs = inputs.to(device)
+            latent, _ = net(inputs)
+            features.append(latent.view(latent.size(0), -1).detach().cpu().numpy())
+    features = np.concatenate(features, axis=0)
+    
     # 군집화
     cluster_net = get_cluster()
     labels = cluster_net.fit_predict(features)

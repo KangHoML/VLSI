@@ -1,4 +1,4 @@
-# ResNet Auto Encoder -> KMeans Cluster -> TSNE Visualization
+# ResNet Auto Encoder Training
 python3 train.py --batch_size 16 \
                  --learning_rate 1e-4 \
                  --epoch 20 \
@@ -8,5 +8,12 @@ python3 train.py --batch_size 16 \
 python3 test.py --sample 5 \
                 --load "resnet_ae"
 
+# Clustering
 python3 cluster.py --cluster "KMeans" \
+                   --load "resnet_ae"
+
+python3 cluster.py --cluster "MeanShift" \
+                   --load "resnet_ae"
+
+python3 cluster.py --cluster "DBSCAN" \
                    --load "resnet_ae"

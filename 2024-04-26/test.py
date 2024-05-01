@@ -9,7 +9,6 @@ from net import AutoEncoder
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="../../datasets/OxfordPet/")
 parser.add_argument("--sample", type=int, default=5)
-parser.add_argument("--batch_size", type=int, default=16)
 parser.add_argument("--load", type=str, default="ckpt1")
 
 def plot_img(ori, pre):
@@ -37,7 +36,7 @@ def test():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     _, val_dataset = build_dataset(root=args.data_path)
-    data_loader = DataLoader(val_dataset, batch_size=args.batch_size, 
+    data_loader = DataLoader(val_dataset, batch_size=len(val_dataset), 
                                           shuffle=False, num_workers=4, pin_memory=True)
     
     net = AutoEncoder()

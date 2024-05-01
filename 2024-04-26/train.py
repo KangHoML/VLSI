@@ -23,9 +23,9 @@ parser.add_argument("--is_ddp", type=bool, default=False)
 parser.add_argument("--is_amp", type=bool, default=False)
 
 # -- hyperparameter about train
-parser.add_argument("--batch_size", type=int, default=16)
+parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--learning_rate", type=float, default=1e-3)
-parser.add_argument("--epoch", type=int, default=10)
+parser.add_argument("--epoch", type=int, default=50)
 
 # -- hyperparamter for saving model
 parser.add_argument("--save", type=str, default="ckpt1")

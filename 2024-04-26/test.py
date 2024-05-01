@@ -10,26 +10,26 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="../../datasets/OxfordPet/")
 parser.add_argument("--sample", type=int, default=5)
 parser.add_argument("--batch_size", type=int, default=16)
-parser.add_argument("--load", type=str, default="ckpt1.pth")
+parser.add_argument("--load", type=str, default="ckpt1")
 
 def plot_img(ori, pre):
-    fig, axes = plt.subplot(nrows=2, ncols=args.sample, figsize=(args.sample * 3, 6))
+    fig, axes = plt.subplots(nrows=2, ncols=args.sample, figsize=(args.sample * 3, 6))
 
-    for i in range(args.samples):
+    for i in range(args.sample):
         ax = axes[0, i]
 
         ori_img = ori[i].detach().cpu().numpy().transpose(1, 2, 0)
         ax.imshow(ori_img)
         ax.axis('off')
 
-        ax = ax[1, i]
+        ax = axes[1, i]
 
         pre_img = pre[i].detach().cpu().numpy().transpose(1, 2, 0)
         ax.imshow(pre_img)
         ax.axis('off')
 
     plt.tight_layout()
-    plt.savefig(f'./result/result_img.png')
+    plt.savefig(f'./result/{args.load}_img.png')
     plt.close()
 
 
@@ -41,7 +41,7 @@ def test():
                                           shuffle=False, num_workers=4, pin_memory=True)
     
     net = AutoEncoder()
-    weight_path = f'./pth/{args.load}.pth'
+    weight_path = f'./result/{args.load}.pth'
     state_dict = torch.load(weight_path, map_location=device)
     net.load_state_dict(state_dict)
     net.to(device)

@@ -1,5 +1,3 @@
 *.pth
-*.ipynb
 *.pyc
-*.pth
 *.pkl

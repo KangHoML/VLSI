@@ -1,1 +1,7 @@
-tiktoken-0.7.0
+datasets
+jsonlines
+accelerate
+peft
+bitsandbytes
+transformers
+trl

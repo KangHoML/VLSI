@@ -9,7 +9,7 @@ parser.add_argument("--model", type=str, default="kanghokh/eeve2.8-ko")
 
 # --model
 parser.add_argument("--base", type=str, default="yanolja/EEVE-Korean-Instruct-2.8B-v1.0")
-parser.add_argument("--adapter", type=str, default="./results/yanolja2.8/checkpoint-3700")
+parser.add_argument("--adapter", type=str, default="./results/yanolja_2.8/checkpoint-3700")
 
 def main():
     # Load the base model

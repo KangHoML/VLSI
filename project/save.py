@@ -5,7 +5,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--hf_addr", type=str, default="kanghokh/eeve2.8-ko")
+parser.add_argument("--model", type=str, default="kanghokh/eeve2.8-ko")
 
 # --model
 parser.add_argument("--base", type=str, default="yanolja/EEVE-Korean-Instruct-2.8B-v1.0")
@@ -30,8 +30,8 @@ def main():
     merged = model.merge_and_unload()
 
     # upload
-    merged.push_to_hub(args.hf_addr)
-    tokenizer.push_to_hub(args.hf_addr)
+    merged.push_to_hub(args.model)
+    tokenizer.push_to_hub(args.model)
 
 
 if __name__ == "__main__":

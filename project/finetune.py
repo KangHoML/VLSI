@@ -9,7 +9,7 @@ from trl import SFTTrainer
 
 parser = argparse.ArgumentParser()
 # -- dataset
-parser.add_argument("--hf_addr", type=str, default="kanghokh/ocr_data")
+parser.add_argument("--data", type=str, default="kanghokh/ocr_data")
 
 # -- model
 parser.add_argument("--base_model", type=str, default="yanolja/EEVE-Korean-Instruct-2.8B-v1.0")
@@ -31,7 +31,7 @@ parser.add_argument("--lr_scheduler", type=str, default="constant")
 
 def train():
     # load the dataset
-    dataset = load_dataset(args.hf_addr, split="train")
+    dataset = load_dataset(args.data, split="train")
 
     # bfloat & flash_attention available
     if torch.cuda.get_device_capability()[0] >= 8:

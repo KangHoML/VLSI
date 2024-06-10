@@ -44,8 +44,8 @@ def train():
     # quantization config
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
-        bnb_4bit_compute_dtype="nf4",
-        bnb_4bit_quant_type=compute_dtype,
+        bnb_4bit_compute_dtype=compute_dtype,
+        bnb_4bit_quant_type="nf4",
         bnb_4bit_use_double_quant=False
     )
 
